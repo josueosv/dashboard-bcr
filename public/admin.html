@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Dashboard Financiero</title>
+<style>
+  :root{--azul:#0b1f5e;--azul2:#1f4fb5;--verde:#1faa4b;--bg:#eef1f6;--borde:#dde3ec;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,Arial,sans-serif;}
+  body{background:var(--bg);color:#1a1a1a;padding:20px;}
+  .wrap{max-width:880px;margin:0 auto;}
+  .top{background:linear-gradient(90deg,#0a1c54,var(--azul));color:#fff;padding:18px 24px;border-radius:10px 10px 0 0;
+    display:flex;justify-content:space-between;align-items:center;}
+  .top h1{font-size:18px;}
+  .top a,.top button{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,.15);
+    border:none;padding:7px 14px;border-radius:6px;cursor:pointer;}
+  .card{background:#fff;border:1px solid var(--borde);border-top:none;border-radius:0 0 10px 10px;padding:24px;}
+  /* login */
+  #login{max-width:360px;margin:60px auto;background:#fff;padding:32px;border-radius:12px;box-shadow:0 10px 40px rgba(11,31,94,.12);}
+  #login h2{color:var(--azul);margin-bottom:6px;}
+  #login p{color:#6b7280;font-size:13px;margin-bottom:18px;}
+  input,select{width:100%;padding:10px 12px;border:1px solid #cfd6e0;border-radius:7px;font-size:14px;}
+  input:focus{outline:2px solid var(--azul2);border-color:transparent;}
+  .btn{background:var(--azul);color:#fff;border:none;padding:11px 20px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;}
+  .btn:hover{background:#0a1a52;}
+  .btn-save{background:var(--verde);width:100%;padding:14px;font-size:16px;box-shadow:0 6px 20px rgba(31,170,75,.3);margin-top:10px;}
+  .save-float{position:fixed;bottom:20px;right:20px;background:var(--verde);color:#fff;border:none;
+    padding:13px 22px;border-radius:30px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 6px 20px rgba(31,170,75,.4);z-index:50;}
+  .save-float:hover{background:#188f3f;}
+  .section{margin:22px 0;}
+  .section h3{color:var(--azul);font-size:15px;border-bottom:2px solid var(--azul2);padding-bottom:6px;margin-bottom:14px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;}
+  .field label{display:block;font-size:12px;color:#555;font-weight:600;margin-bottom:4px;}
+  .row-edit{display:grid;grid-template-columns:2fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;}
+  .row-edit input{width:100%;}
+  .mini-btn{background:#e5484d;color:#fff;border:none;border-radius:6px;width:34px;height:38px;cursor:pointer;font-size:16px;}
+  .add-btn{background:#eef2f8;color:var(--azul);border:1px dashed var(--azul2);padding:8px 14px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;}
+  textarea{width:100%;padding:10px;border:1px solid #cfd6e0;border-radius:7px;font-size:13px;min-height:70px;font-family:inherit;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111;color:#fff;
+    padding:12px 22px;border-radius:8px;opacity:0;transition:.3s;font-size:14px;z-index:99;}
+  .toast.show{opacity:1;}
+  .toast.err{background:#e5484d;}
+  .err-msg{color:#e5484d;font-size:13px;margin-top:8px;}
+  .hint{font-size:11px;color:#94a3b8;margin-top:4px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login" style="display:none">
+  <h2>Panel de Administración</h2>
+  <p>Ingresa la contraseña para editar los datos del dashboard.</p>
+  <input type="password" id="pwd" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()">
+  <div class="err-msg" id="login-err"></div>
+  <button class="btn" style="width:100%;margin-top:14px" onclick="doLogin()">Ingresar</button>
+</div>
+
+<!-- ADMIN -->
+<div class="wrap" id="panel" style="display:none">
+  <div class="top">
+    <h1>⚙ Editar Datos del Dashboard</h1>
+    <div>
+      <a href="/" target="_blank">Ver dashboard ↗</a>
+      <button onclick="logout()">Salir</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section">
+      <h3>General</h3>
+      <div class="grid">
+        <div class="field"><label>Título</label><input id="f-titulo"></div>
+        <div class="field"><label>Período</label><input id="f-periodo"></div>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <div class="field"><label>Subtítulo</label><input id="f-subtitulo"></div>
+        <div class="field"><label>Comparar con (ej: Abr 2026)</label><input id="f-comparaCon"></div>
+      </div>
+      <div class="field" style="margin-top:12px"><label>Fuente</label><input id="f-fuente"></div>
+    </div>
+
+    <div class="section">
+      <h3>Indicadores Principales (KPIs)</h3>
+      <div class="grid">
+        <div class="field"><label>Depósitos (millones)</label><input id="k-dep-v" type="number" step="0.1"></div>
+        <div class="field"><label>Depósitos Var.%</label><input id="k-dep-var" type="number" step="0.1"></div>
+        <div class="field"><label>Préstamos (millones)</label><input id="k-pre-v" type="number" step="0.1"></div>
+        <div class="field"><label>Préstamos Var.%</label><input id="k-pre-var" type="number" step="0.1"></div>
+        <div class="field"><label>Mora %</label><input id="k-mora-v" type="number" step="0.1"></div>
+        <div class="field"><label>Mora Estándar %</label><input id="k-mora-e" type="number" step="0.1"></div>
+        <div class="field"><label>Solvencia %</label><input id="k-sol-v" type="number" step="0.1"></div>
+        <div class="field"><label>Solvencia Parámetro %</label><input id="k-sol-p" type="number" step="0.1"></div>
+        <div class="field"><label>Utilidad (millones)</label><input id="k-uti-v" type="number" step="0.1"></div>
+        <div class="field"><label>Utilidad Var.%</label><input id="k-uti-var" type="number" step="0.1"></div>
+        <div class="field"><label>Activos (millones)</label><input id="k-act-v" type="number" step="0.1"></div>
+        <div class="field"><label>Activos Var.%</label><input id="k-act-var" type="number" step="0.1"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Depósitos por Tipo</h3>
+      <div id="dep-list"></div>
+      <button class="add-btn" onclick="addDep()">+ Agregar tipo</button>
+    </div>
+
+    <div class="section">
+      <h3>Préstamos a Familias</h3>
+      <div class="grid">
+        <div class="field"><label>Consumo (millones)</label><input id="fam-con-v" type="number" step="0.1"></div>
+        <div class="field"><label>Consumo Var.%</label><input id="fam-con-var" type="number" step="0.1"></div>
+        <div class="field"><label>Vivienda (millones)</label><input id="fam-viv-v" type="number" step="0.1"></div>
+        <div class="field"><label>Vivienda Var.%</label><input id="fam-viv-var" type="number" step="0.1"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Composición de Préstamos</h3>
+      <div class="grid">
+        <div class="field"><label>Familias %</label><input id="comp-fam" type="number" step="0.1"></div>
+        <div class="field"><label>Empresas %</label><input id="comp-emp" type="number" step="0.1"></div>
+      </div>
+      <div class="hint">Deben sumar 100%.</div>
+    </div>
+
+    <div class="section">
+      <h3>Préstamos Empresas por Sector</h3>
+      <div id="sec-list"></div>
+      <button class="add-btn" onclick="addSec()">+ Agregar sector</button>
+    </div>
+
+    <div class="section">
+      <h3>Tasas de Interés</h3>
+      <div class="grid">
+        <div class="field"><label>Tasa Préstamo %</label><input id="t-pre" type="number" step="0.1"></div>
+        <div class="field"><label>Tasa Depósito %</label><input id="t-dep" type="number" step="0.1"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Nota "Otros"</h3>
+      <textarea id="f-nota"></textarea>
+    </div>
+
+    <button class="btn-save" onclick="save()">💾 Guardar cambios</button>
+  </div>
+</div>
+
+<button class="save-float" onclick="save()" id="floatSave" style="display:none">💾 Guardar</button>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let DATA = null;
+
+async function checkSession(){
+  const r = await fetch('/admin/session');
+  const {authed} = await r.json();
+  if(authed){ document.getElementById('panel').style.display='block'; document.getElementById('floatSave').style.display='block'; loadData(); }
+  else document.getElementById('login').style.display='block';
+}
+async function doLogin(){
+  const password = document.getElementById('pwd').value;
+  const r = await fetch('/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});
+  if(r.ok){ location.reload(); }
+  else document.getElementById('login-err').textContent='Contraseña incorrecta';
+}
+async function logout(){ await fetch('/admin/logout',{method:'POST'}); location.reload(); }
+
+async function loadData(){
+  const r = await fetch('/api/data');
+  DATA = await r.json();
+  fill();
+}
+const g = id => document.getElementById(id);
+function fill(){
+  g('f-titulo').value=DATA.titulo; g('f-periodo').value=DATA.periodo; g('f-fuente').value=DATA.fuente; g('f-nota').value=DATA.notaOtros;
+  g('f-subtitulo').value=DATA.subtitulo||''; g('f-comparaCon').value=DATA.comparaCon||'';
+  const k=DATA.kpis;
+  g('k-dep-v').value=k.depositos.valor; g('k-dep-var').value=k.depositos.var;
+  g('k-pre-v').value=k.prestamos.valor; g('k-pre-var').value=k.prestamos.var;
+  g('k-mora-v').value=k.mora.valor; g('k-mora-e').value=k.mora.estandar;
+  g('k-sol-v').value=k.solvencia.valor; g('k-sol-p').value=k.solvencia.parametro;
+  g('k-uti-v').value=k.utilidad.valor; g('k-uti-var').value=k.utilidad.var;
+  g('k-act-v').value=k.activos.valor; g('k-act-var').value=k.activos.var;
+  g('fam-con-v').value=DATA.prestamosFamilias.consumo.valor; g('fam-con-var').value=DATA.prestamosFamilias.consumo.var;
+  g('fam-viv-v').value=DATA.prestamosFamilias.vivienda.valor; g('fam-viv-var').value=DATA.prestamosFamilias.vivienda.var;
+  g('comp-fam').value=DATA.composicionPrestamos.familias; g('comp-emp').value=DATA.composicionPrestamos.empresas;
+  g('t-pre').value=DATA.tasas.prestamo; g('t-dep').value=DATA.tasas.deposito;
+  renderDep(); renderSec();
+}
+function renderDep(){
+  g('dep-list').innerHTML = DATA.depositosPorTipo.map((d,i)=>`
+    <div class="row-edit">
+      <div class="field"><label>Nombre</label><input value="${d.nombre}" oninput="DATA.depositosPorTipo[${i}].nombre=this.value"></div>
+      <div class="field"><label>Valor (mill)</label><input type="number" step="0.1" value="${d.valor}" oninput="DATA.depositosPorTipo[${i}].valor=parseFloat(this.value)"></div>
+      <div class="field"><label>% Total</label><input type="number" step="0.1" value="${d.pct}" oninput="DATA.depositosPorTipo[${i}].pct=parseFloat(this.value)"></div>
+      <button class="mini-btn" onclick="DATA.depositosPorTipo.splice(${i},1);renderDep()">✕</button>
+    </div>`).join('');
+}
+function addDep(){ DATA.depositosPorTipo.push({nombre:'Nuevo',valor:0,pct:0}); renderDep(); }
+function renderSec(){
+  g('sec-list').innerHTML = DATA.prestamosEmpresasSector.map((s,i)=>`
+    <div class="row-edit">
+      <div class="field"><label>Sector</label><input value="${s.sector}" oninput="DATA.prestamosEmpresasSector[${i}].sector=this.value"></div>
+      <div class="field"><label>Valor (mill)</label><input type="number" step="0.1" value="${s.valor}" oninput="DATA.prestamosEmpresasSector[${i}].valor=parseFloat(this.value)"></div>
+      <button class="mini-btn" onclick="DATA.prestamosEmpresasSector.splice(${i},1);renderSec()">✕</button>
+    </div>`).join('');
+}
+function addSec(){ DATA.prestamosEmpresasSector.push({sector:'Nuevo',valor:0}); renderSec(); }
+
+function collect(){
+  DATA.titulo=g('f-titulo').value; DATA.periodo=g('f-periodo').value; DATA.fuente=g('f-fuente').value; DATA.notaOtros=g('f-nota').value;
+  DATA.subtitulo=g('f-subtitulo').value; DATA.comparaCon=g('f-comparaCon').value;
+  const num=id=>parseFloat(g(id).value)||0;
+  DATA.kpis={
+    depositos:{valor:num('k-dep-v'),var:num('k-dep-var')},
+    prestamos:{valor:num('k-pre-v'),var:num('k-pre-var')},
+    mora:{valor:num('k-mora-v'),estandar:num('k-mora-e')},
+    solvencia:{valor:num('k-sol-v'),parametro:num('k-sol-p')},
+    utilidad:{valor:num('k-uti-v'),var:num('k-uti-var')},
+    activos:{valor:num('k-act-v'),var:num('k-act-var')}
+  };
+  DATA.prestamosFamilias={consumo:{valor:num('fam-con-v'),var:num('fam-con-var')},vivienda:{valor:num('fam-viv-v'),var:num('fam-viv-var')}};
+  DATA.composicionPrestamos={familias:num('comp-fam'),empresas:num('comp-emp')};
+  DATA.tasas={prestamo:num('t-pre'),deposito:num('t-dep')};
+}
+async function save(){
+  collect();
+  delete DATA.updated_at;
+  const r = await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(DATA)});
+  if(r.ok) toast('✓ Cambios guardados');
+  else toast('Error al guardar',true);
+}
+function toast(msg,err){
+  const t=g('toast'); t.textContent=msg; t.className='toast show'+(err?' err':'');
+  setTimeout(()=>t.className='toast',2500);
+}
+checkSession();
+</script>
+</body>
+</html>
