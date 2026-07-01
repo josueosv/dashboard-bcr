@@ -69,7 +69,7 @@
   /* ---------- KPI ROW ---------- */
   .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:16px;}
   .kpi{background:var(--card);border:1px solid var(--card-brd);border-radius:14px;padding:16px 16px 18px;
-    position:relative;overflow:hidden;}
+    position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:210px;}
   .kpi::before{content:"";position:absolute;top:-40px;right:-40px;width:120px;height:120px;
     background:radial-gradient(circle,var(--glow),transparent 70%);}
   .kpi-head{display:flex;align-items:center;gap:11px;margin-bottom:12px;}
@@ -83,15 +83,26 @@
   .kpi-var .cmp{color:var(--texto2);font-weight:500;}
   .kpi-var .arrow{font-size:10px;}
   /* progress bar variant (mora/solvencia) */
-  .kpi-bar{height:6px;background:#0a1a38;border-radius:4px;margin-top:14px;overflow:hidden;}
-  .kpi-bar > i{display:block;height:100%;border-radius:4px;
-    background:linear-gradient(90deg,var(--azul),var(--azul-claro));}
+  .kpi-bar{height:8px;background:#0e2148;border-radius:5px;margin-top:16px;overflow:hidden;}
+  .kpi-bar > i{display:block;height:100%;border-radius:5px;
+    background:linear-gradient(90deg,var(--azul),var(--azul-claro));box-shadow:0 0 12px rgba(46,139,255,.5);}
+  /* mini-sparkline dentro de las tarjetas KPI */
+  .kpi-spark{margin-top:auto;padding-top:14px;}
+  .kpi-spark svg{display:block;}
 
   /* ---------- PANELS GRID ---------- */
   .grid-mid{display:grid;grid-template-columns:1fr 1fr 1.15fr 1.15fr;gap:14px;margin-bottom:16px;}
   .panel{background:var(--card);border:1px solid var(--card-brd);border-radius:14px;padding:17px;display:flex;flex-direction:column;}
   .panel h3{font-size:15.5px;font-weight:700;margin-bottom:2px;}
   .panel .psub{font-size:11.5px;color:var(--texto2);margin-bottom:10px;}
+  /* encabezado de panel con ícono (estilo referencia) */
+  .panel-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .panel-head .ph-ic{width:44px;height:44px;border-radius:12px;flex-shrink:0;
+    background:linear-gradient(135deg,var(--azul-dark),var(--azul-mid));
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+    box-shadow:0 4px 12px rgba(46,139,255,.3);}
+  .panel-head h3{margin:0;font-size:16px;}
+  .panel-head .psub{margin:0;}
   .chart-wrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:150px;}
   .legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;font-size:12px;margin-top:6px;color:var(--texto2);}
   .legend span{display:flex;align-items:center;gap:6px;}
@@ -112,24 +123,41 @@
   .pie-arrow{color:var(--azul);font-size:26px;opacity:.5;user-select:none;}
 
   /* sectores */
-  .sec-item{display:flex;align-items:center;gap:11px;margin:9px 0;font-size:13px;}
-  .sec-item .sic{width:30px;height:30px;border-radius:8px;background:var(--card2);border:1px solid var(--card-brd);
-    display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
-  .sec-item .sname{width:120px;color:var(--texto);flex-shrink:0;font-size:12.5px;}
-  .sec-track{flex:1;height:14px;background:#0a1a38;border-radius:4px;overflow:hidden;}
-  .sec-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--azul-mid),var(--azul-claro));}
-  .sec-item .sval{width:74px;text-align:right;font-weight:700;color:var(--azul-claro);font-size:12.5px;}
-  .nota{font-size:10.5px;color:var(--texto2);margin-top:12px;line-height:1.5;}
+  .sec-item{display:flex;align-items:center;gap:12px;padding:11px 0;font-size:13px;
+    border-bottom:1px solid rgba(23,48,94,.5);}
+  .sec-item:last-of-type{border-bottom:none;}
+  .sec-item .sic{width:34px;height:34px;border-radius:9px;background:var(--card2);border:1px solid var(--card-brd);
+    display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+  .sec-item .sname{width:118px;color:var(--texto);flex-shrink:0;font-size:13px;line-height:1.15;}
+  .sec-track{flex:1;height:16px;background:#081a3a;border-radius:8px;overflow:hidden;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.4);}
+  .sec-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--azul-mid),var(--azul-claro));
+    box-shadow:0 0 10px rgba(46,139,255,.4);}
+  .sec-item .sval{width:78px;text-align:right;font-weight:700;color:var(--azul-claro);font-size:13.5px;}
+  .nota{font-size:10.5px;color:var(--texto2);margin-top:14px;line-height:1.5;
+    background:var(--card2);border:1px solid var(--card-brd);border-radius:10px;padding:11px 13px;
+    display:flex;gap:9px;align-items:flex-start;}
+  .nota .nic{color:var(--azul-claro);font-size:14px;flex-shrink:0;margin-top:1px;}
   .nota b{color:var(--texto);}
 
   /* ---------- BOTTOM ROW ---------- */
-  .grid-bot{display:grid;grid-template-columns:1fr 2.3fr;gap:14px;margin-bottom:16px;}
+  .grid-bot{display:grid;grid-template-columns:1fr 1.2fr;gap:14px;margin-bottom:16px;}
   .activos-card{display:flex;flex-direction:column;}
-  .activos-head{display:flex;align-items:center;gap:11px;margin-bottom:10px;}
-  .tasas-inner{display:grid;grid-template-columns:1fr 1fr auto;gap:20px;align-items:center;flex:1;}
-  .tasa .tt{font-size:13px;color:var(--texto2);line-height:1.3;margin-bottom:8px;}
-  .tasa .tv{font-size:28px;font-weight:800;}
-  .phone-ic{font-size:40px;opacity:.5;text-align:center;color:var(--azul);}
+  .activos-chart{margin-top:auto;padding-top:12px;height:120px;}
+  .activos-chart svg{display:block;height:100%;width:100%;}
+
+  .tasas-grid{display:flex;align-items:flex-start;gap:22px;flex:1;}
+  .tasa{flex:1;min-width:0;}
+  .tasa-sep{width:1px;align-self:stretch;background:var(--card-brd);}
+  .tasa .tt{font-size:13px;color:var(--texto2);line-height:1.35;margin-bottom:12px;}
+  .tasa-pill{display:inline-block;font-size:26px;font-weight:800;
+    background:var(--card2);border:1px solid var(--card-brd);border-radius:12px;padding:8px 18px;}
+  .tasa-cta{display:flex;align-items:center;gap:12px;margin-top:14px;
+    background:var(--card2);border:1px solid var(--card-brd);border-radius:12px;padding:13px 16px;
+    font-size:15px;font-weight:600;color:var(--texto);cursor:pointer;transition:.15s;}
+  .tasa-cta:hover{border-color:var(--azul);background:#0f2650;}
+  .tasa-cta .cta-ic{font-size:20px;}
+  .tasa-cta .cta-arw{margin-left:auto;color:var(--texto2);font-size:20px;}
 
   /* ---------- INSTITUCIONES ---------- */
   .instituciones{background:var(--card);border:1px solid var(--card-brd);border-radius:14px;padding:16px 18px;}
@@ -191,7 +219,9 @@
   .led-bar .lb-title small{display:block;font-size:11px;font-weight:600;color:var(--texto2);letter-spacing:.3px;}
   .led-bar .lb-right{display:flex;align-items:center;gap:22px;}
   .led-bar .lb-periodo{font-size:16px;font-weight:700;color:var(--azul-claro);letter-spacing:.5px;}
-  .led-bar .lb-clock{font-size:15px;font-weight:600;color:var(--texto2);font-variant-numeric:tabular-nums;}
+  .led-bar .lb-divider{width:1px;height:20px;background:var(--card-brd);}
+  .led-bar .lb-clock{font-size:15px;font-weight:600;color:var(--texto2);font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:7px;}
+  .led-bar .lb-clock .clk-ic{font-size:14px;opacity:.8;}
   .led-bar .lb-logo{width:40px;height:40px;border-radius:50%;border:2px solid #cfa94d55;
     display:flex;align-items:center;justify-content:center;font-size:11px;color:#cfa94d;font-weight:800;}
   .led-dots{display:flex;gap:7px;}
@@ -276,7 +306,8 @@
     <div class="lb-title" id="lb-title">INDICADORES FINANCIEROS<small id="lb-sub"></small></div>
     <div class="lb-right">
       <span class="lb-periodo" id="lb-periodo"></span>
-      <span class="lb-clock" id="lb-clock"></span>
+      <span class="lb-divider"></span>
+      <span class="lb-clock"><span class="clk-ic">🕐</span><span id="lb-clock"></span></span>
       <span class="led-dots" id="led-dots"></span>
       <span class="lb-logo">BCR</span>
     </div>
@@ -327,42 +358,47 @@
     </div>
 
     <div class="panel">
-      <h3>Préstamos Empresas por Sector</h3>
-      <div class="psub">Var. USD Millones</div>
-      <div id="sectores" style="margin-top:4px"></div>
-      <div class="nota"><b>Otros:</b> <span id="nota-otros"></span></div>
+      <div class="panel-head">
+        <div class="ph-ic">🏛</div>
+        <div><h3>Préstamos Empresas por Sector</h3><div class="psub">Var. USD Millones</div></div>
+      </div>
+      <div id="sectores"></div>
+      <div class="nota"><span class="nic">ⓘ</span><span><b>Otros:</b> <span id="nota-otros"></span></span></div>
     </div>
   </div>
 
   <!-- BOTTOM -->
   <div class="grid-bot">
     <div class="panel activos-card">
-      <div class="activos-head">
-        <div class="kpi-ic">▣</div>
-        <div><h3 style="margin:0">Activos</h3><div class="psub" style="margin:0">Saldo y Var.%</div></div>
+      <div class="panel-head">
+        <div class="ph-ic">▣</div>
+        <div><h3>Activos</h3><div class="psub">Saldo y Var.%</div></div>
       </div>
-      <div class="kpi-val" id="activos-val">—</div>
+      <div class="kpi-val" id="activos-val" style="font-size:38px">—</div>
       <div class="kpi-unit">millones</div>
-      <div class="kpi-var"><span class="arrow">▲</span><span id="activos-var"></span> <span class="cmp" id="activos-cmp"></span></div>
-      <div style="margin-top:auto;padding-top:10px"><svg id="spark-activos" viewBox="0 0 300 60" width="100%" height="52"></svg></div>
+      <div class="kpi-var" style="font-size:14px"><span class="arrow">▲</span><span id="activos-var"></span> <span class="cmp" id="activos-cmp"></span></div>
+      <div class="activos-chart"><svg id="spark-activos" viewBox="0 0 300 90" width="100%" height="100%" preserveAspectRatio="none"></svg></div>
     </div>
 
     <div class="panel">
-      <h3>Tasas de Interés</h3>
-      <div class="psub">&nbsp;</div>
-      <div class="tasas-inner">
+      <div class="panel-head">
+        <div class="ph-ic">%</div>
+        <div><h3>Tasas de Interés</h3></div>
+      </div>
+      <div class="tasas-grid">
         <div class="tasa">
           <div class="tt">Tasa de Préstamo<br>(Menor a 1 año)</div>
-          <div class="tv" id="tasa-prestamo">—</div>
-          <svg id="spark-prestamo" viewBox="0 0 200 50" width="100%" height="44" style="margin-top:8px"></svg>
+          <div class="tasa-pill" id="tasa-prestamo">—</div>
+          <svg id="spark-prestamo" viewBox="0 0 200 60" width="100%" height="56" style="margin-top:12px" preserveAspectRatio="none"></svg>
         </div>
+        <div class="tasa-sep"></div>
         <div class="tasa">
           <div class="tt">Tasa de Depósitos<br>(180 días)</div>
-          <div class="tv" id="tasa-deposito">—</div>
-          <svg id="spark-deposito" viewBox="0 0 200 50" width="100%" height="44" style="margin-top:8px"></svg>
+          <div class="tasa-pill" id="tasa-deposito">—</div>
+          <svg id="spark-deposito" viewBox="0 0 200 60" width="100%" height="56" style="margin-top:12px" preserveAspectRatio="none"></svg>
         </div>
-        <div class="phone-ic">📲</div>
       </div>
+      <div class="tasa-cta"><span class="cta-ic">📲</span><span>Ver detalle histórico</span><span class="cta-arw">›</span></div>
     </div>
   </div>
 
@@ -402,13 +438,18 @@ function render(d){
     'Última actualización: ' + new Date(d.updated_at).toLocaleString('es-SV');
 
   const k = d.kpis;
-  // KPIs con dos variantes: valor+var, o valor+barra
+  // Series para los mini-sparklines de cada KPI (usa las guardadas o genera una tendencia suave)
+  const genSerie = (fin, n=7)=>{ const arr=[]; for(let i=0;i<n;i++){ arr.push(fin*(0.86 + 0.14*(i/(n-1)) + (Math.sin(i*1.3)*0.012))); } return arr; };
+  const sDep = d.serieDepositos || genSerie(k.depositos.valor);
+  const sPre = d.seriePrestamos || genSerie(k.prestamos.valor);
+  const sUti = d.serieUtilidad  || genSerie(k.utilidad.valor);
+  // KPIs con dos variantes: valor+var+sparkline, o valor+barra
   const defs = [
-    {t:'Depósitos', s:'Saldo y Var.%', ic:'🏛', val:fmt(k.depositos.valor), unit:'millones', var:k.depositos.var},
-    {t:'Préstamos', s:'Saldo y Var.%', ic:'◎', val:fmt(k.prestamos.valor), unit:'millones', var:k.prestamos.var},
+    {t:'Depósitos', s:'Saldo y Var.%', ic:'🏛', val:fmt(k.depositos.valor), unit:'millones', var:k.depositos.var, spark:'sk-dep'},
+    {t:'Préstamos', s:'Saldo y Var.%', ic:'◎', val:fmt(k.prestamos.valor), unit:'millones', var:k.prestamos.var, spark:'sk-pre'},
     {t:'Mora', s:'Estándar: '+k.mora.estandar+'%', ic:'%', val:k.mora.valor+'%', bar:(k.mora.valor/k.mora.estandar*100)},
     {t:'Solvencia', s:'Parámetro Legal: '+k.solvencia.parametro+'%', ic:'🛡', val:k.solvencia.valor+' %', bar:Math.min(k.solvencia.valor/(k.solvencia.parametro*1.5)*100,100)},
-    {t:'Utilidad', s:'Saldo y Var.%', ic:'📊', val:fmt(k.utilidad.valor), unit:'millones', var:k.utilidad.var},
+    {t:'Utilidad', s:'Saldo y Var.%', ic:'📊', val:fmt(k.utilidad.valor), unit:'millones', var:k.utilidad.var, spark:'sk-uti'},
   ];
   document.getElementById('kpis').innerHTML = defs.map(x=>`
     <div class="kpi">
@@ -420,7 +461,12 @@ function render(d){
       ${x.unit?`<div class="kpi-unit">${x.unit}</div>`:''}
       ${x.var!==undefined?`<div class="kpi-var"><span class="arrow">▲</span>${x.var}% <span class="cmp">${cmp}</span></div>`:''}
       ${x.bar!==undefined?`<div class="kpi-bar"><i style="width:${Math.min(x.bar,100).toFixed(0)}%"></i></div>`:''}
+      ${x.spark?`<div class="kpi-spark"><svg id="${x.spark}" viewBox="0 0 260 60" width="100%" height="56" preserveAspectRatio="none"></svg></div>`:''}
     </div>`).join('');
+  // dibujar los sparklines de KPI
+  sparkline('sk-dep', sDep, 260, 60);
+  sparkline('sk-pre', sPre, 260, 60);
+  sparkline('sk-uti', sUti, 260, 60);
 
   // Activos
   document.getElementById('activos-val').textContent = fmt(k.activos.valor);
@@ -431,10 +477,10 @@ function render(d){
   document.getElementById('tasa-prestamo').textContent = d.tasas.prestamo+' %';
   document.getElementById('tasa-deposito').textContent = d.tasas.deposito+' %';
 
-  // Sparklines
-  if(d.serieActivos) sparkline('spark-activos', d.serieActivos, 300, 60);
-  if(d.tasas.seriePrestamo) sparkline('spark-prestamo', d.tasas.seriePrestamo, 200, 50);
-  if(d.tasas.serieDeposito) sparkline('spark-deposito', d.tasas.serieDeposito, 200, 50);
+  // Sparklines (con puntos en cada vértice y relleno marcado, estilo referencia)
+  if(d.serieActivos) sparkline('spark-activos', d.serieActivos, 300, 90, {dots:true, strong:true});
+  if(d.tasas.seriePrestamo) sparkline('spark-prestamo', d.tasas.seriePrestamo, 200, 60, {dots:true});
+  if(d.tasas.serieDeposito) sparkline('spark-deposito', d.tasas.serieDeposito, 200, 60, {dots:true});
 
   // Donut
   drawDonut('donut', d.depositosPorTipo);
@@ -477,9 +523,12 @@ function render(d){
 }
 
 /* ---------- SPARKLINE ---------- */
-function sparkline(id, data, w, h){
+function sparkline(id, data, w, h, opts){
   const svg=document.getElementById(id); if(!svg)return;
-  const pad=4, min=Math.min(...data), max=Math.max(...data), rng=(max-min)||1;
+  opts = opts || {};
+  const dots = opts.dots || false;       // mostrar punto en cada vértice
+  const strong = opts.strong || false;   // relleno más marcado
+  const pad=5, min=Math.min(...data), max=Math.max(...data), rng=(max-min)||1;
   const pts=data.map((v,i)=>{
     const x=pad+(i/(data.length-1))*(w-2*pad);
     const y=h-pad-((v-min)/rng)*(h-2*pad);
@@ -488,14 +537,25 @@ function sparkline(id, data, w, h){
   const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
   const area=line+` L${pts[pts.length-1][0].toFixed(1)} ${h} L${pts[0][0].toFixed(1)} ${h} Z`;
   const gid='g'+id;
+  const top = strong ? '.45' : '.30';
+  let dotsHtml = '';
+  if(dots){
+    dotsHtml = pts.map((p,i)=>{
+      const last = i===pts.length-1;
+      return `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${last?4:3}" fill="${last?'#fff':'#4da3ff'}" stroke="#4da3ff" stroke-width="${last?2:0}"/>`;
+    }).join('');
+  } else {
+    const lp = pts[pts.length-1];
+    dotsHtml = `<circle cx="${lp[0].toFixed(1)}" cy="${lp[1].toFixed(1)}" r="3.5" fill="#4da3ff"/>`;
+  }
   svg.innerHTML=`
     <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2e8bff" stop-opacity=".35"/>
+      <stop offset="0" stop-color="#2e8bff" stop-opacity="${top}"/>
       <stop offset="1" stop-color="#2e8bff" stop-opacity="0"/>
     </linearGradient></defs>
     <path d="${area}" fill="url(#${gid})"/>
-    <path d="${line}" fill="none" stroke="#4da3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="${pts[pts.length-1][0].toFixed(1)}" cy="${pts[pts.length-1][1].toFixed(1)}" r="3" fill="#4da3ff"/>`;
+    <path d="${line}" fill="none" stroke="#4da3ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    ${dotsHtml}`;
 }
 
 /* ---------- DONUT ---------- */

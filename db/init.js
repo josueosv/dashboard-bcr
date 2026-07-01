@@ -49,7 +49,10 @@ const DEFAULT_DATA = {
     seriePrestamo: [7.2, 7.4, 7.3, 7.5, 7.4, 7.6],
     serieDeposito: [4.3, 4.5, 4.4, 4.6, 4.5, 4.6]
   },
-  serieActivos: [30800, 31200, 31500, 31900, 32100, 32405.7],
+  serieActivos: [30800, 31000, 31300, 31600, 31850, 32100, 32405.7],
+  serieDepositos: [21200, 21800, 22400, 23100, 23600, 24100, 24632.1],
+  seriePrestamos: [19800, 20100, 20500, 20900, 21200, 21450, 21626.0],
+  serieUtilidad: [162, 168, 175, 182, 190, 197, 202.9],
   notaOtros: 'Actividades no clasificadas; Electricidad, gas, agua y servicios sanitarios; Agropecuario; Minas y canteras; Transporte, almacenamiento y comunicaciones; Instituciones financieras privadas.',
   fuente: 'Elaboración propia con datos de BCR y SSF'
 };
