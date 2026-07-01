@@ -69,7 +69,7 @@
   /* ---------- KPI ROW ---------- */
   .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:16px;}
   .kpi{background:var(--card);border:1px solid var(--card-brd);border-radius:14px;padding:16px 16px 18px;
-    position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:210px;}
+    position:relative;overflow:hidden;display:flex;flex-direction:column;}
   .kpi::before{content:"";position:absolute;top:-40px;right:-40px;width:120px;height:120px;
     background:radial-gradient(circle,var(--glow),transparent 70%);}
   .kpi-head{display:flex;align-items:center;gap:11px;margin-bottom:12px;}
@@ -87,7 +87,7 @@
   .kpi-bar > i{display:block;height:100%;border-radius:5px;
     background:linear-gradient(90deg,var(--azul),var(--azul-claro));box-shadow:0 0 12px rgba(46,139,255,.5);}
   /* mini-sparkline dentro de las tarjetas KPI */
-  .kpi-spark{margin-top:auto;padding-top:14px;}
+  .kpi-spark{margin-top:14px;}
   .kpi-spark svg{display:block;}
 
   /* ---------- PANELS GRID ---------- */
@@ -119,8 +119,8 @@
   .fam .fvar{font-size:12px;color:var(--verde);font-weight:700;margin-top:2px;}
 
   /* composicion pie con flechas */
-  .pie-row{display:flex;align-items:center;justify-content:center;gap:6px;flex:1;}
-  .pie-arrow{color:var(--azul);font-size:26px;opacity:.5;user-select:none;}
+  .pie-row{display:flex;align-items:center;justify-content:space-between;gap:6px;flex:1;}
+  .pie-arrow{color:var(--azul);font-size:30px;opacity:.5;user-select:none;flex-shrink:0;}
 
   /* sectores */
   .sec-item{display:flex;align-items:center;gap:12px;padding:11px 0;font-size:13px;
@@ -249,7 +249,7 @@
   /* Las tarjetas dentro del stage se estiran a toda la altura disponible */
   body.led .led-page > .panel,
   body.led .led-page > .kpi{
-    height:100%;display:flex;flex-direction:column;justify-content:center;
+    height:100%;display:flex;flex-direction:column;justify-content:flex-start;
   }
   /* KPIs más grandes en LED */
   body.led .led-page.p-kpis .kpi-val{font-size:34px;}
@@ -257,6 +257,7 @@
   body.led .led-page.p-kpis .kpi-title{font-size:19px;}
   body.led .led-page.p-kpis .kpi-sub{font-size:13px;}
   body.led .led-page.p-kpis .kpi-var{font-size:15px;}
+  body.led .led-page.p-kpis .kpi-spark svg{height:70px;}
   body.led .led-page .panel h3{font-size:18px;}
   body.led .led-page .fam .fval{font-size:26px;}
   body.led .led-page .kpi-val{font-size:30px;}
@@ -351,7 +352,7 @@
       <div class="psub">&nbsp;</div>
       <div class="pie-row">
         <span class="pie-arrow">‹</span>
-        <svg id="pie" viewBox="0 0 220 220" width="100%" style="max-width:200px"></svg>
+        <svg id="pie" viewBox="0 0 220 220" width="100%" style="max-width:300px"></svg>
         <span class="pie-arrow">›</span>
       </div>
       <div class="legend" id="leg-comp"></div>
@@ -461,12 +462,12 @@ function render(d){
       ${x.unit?`<div class="kpi-unit">${x.unit}</div>`:''}
       ${x.var!==undefined?`<div class="kpi-var"><span class="arrow">▲</span>${x.var}% <span class="cmp">${cmp}</span></div>`:''}
       ${x.bar!==undefined?`<div class="kpi-bar"><i style="width:${Math.min(x.bar,100).toFixed(0)}%"></i></div>`:''}
-      ${x.spark?`<div class="kpi-spark"><svg id="${x.spark}" viewBox="0 0 260 60" width="100%" height="56" preserveAspectRatio="none"></svg></div>`:''}
+      ${x.spark?`<div class="kpi-spark"><svg id="${x.spark}" viewBox="0 0 260 40" width="100%" height="38" preserveAspectRatio="none"></svg></div>`:''}
     </div>`).join('');
   // dibujar los sparklines de KPI
-  sparkline('sk-dep', sDep, 260, 60);
-  sparkline('sk-pre', sPre, 260, 60);
-  sparkline('sk-uti', sUti, 260, 60);
+  sparkline('sk-dep', sDep, 260, 40);
+  sparkline('sk-pre', sPre, 260, 40);
+  sparkline('sk-uti', sUti, 260, 40);
 
   // Activos
   document.getElementById('activos-val').textContent = fmt(k.activos.valor);
@@ -562,19 +563,19 @@ function sparkline(id, data, w, h, opts){
 function drawDonut(id, data){
   const svg=document.getElementById(id);
   const total=data.reduce((a,b)=>a+b.valor,0);
-  const cx=160, cy=108, r=70, rin=42;
+  const cx=168, cy=108, r=68, rin=40;
   let ang=-90, html='';
   data.forEach((s,i)=>{
     const frac=s.valor/total, a0=ang, a1=ang+frac*360; ang=a1;
     html+=arcPath(cx,cy,r,rin,a0,a1,PIE_BLUE[i%3]);
     const mid=(a0+a1)/2*Math.PI/180;
     const sx=cx+r*Math.cos(mid), sy=cy+r*Math.sin(mid);
-    const ex=cx+(r+13)*Math.cos(mid), ey=cy+(r+13)*Math.sin(mid);
+    const ex=cx+(r+14)*Math.cos(mid), ey=cy+(r+14)*Math.sin(mid);
     const left=Math.cos(mid)<0;
     html+=`<line x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="#37568c" stroke-width="1"/>`;
-    html+=`<text x="${(left?ex-2:ex+2).toFixed(1)}" y="${(ey-2).toFixed(1)}" font-size="11" font-weight="700" fill="#cfe0f7"
+    html+=`<text x="${(left?ex-2:ex+2).toFixed(1)}" y="${(ey-2).toFixed(1)}" font-size="13.5" font-weight="800" fill="#eef4ff"
       text-anchor="${left?'end':'start'}">${fmt(s.valor)}</text>`;
-    html+=`<text x="${(left?ex-2:ex+2).toFixed(1)}" y="${(ey+10).toFixed(1)}" font-size="10" fill="#8ba3c7"
+    html+=`<text x="${(left?ex-2:ex+2).toFixed(1)}" y="${(ey+11).toFixed(1)}" font-size="11" fill="#8ba3c7"
       text-anchor="${left?'end':'start'}">(${s.pct}%)</text>`;
   });
   svg.innerHTML=html;
@@ -595,8 +596,8 @@ function drawPie(id, comp){
   html+=slice(cx,cy,r,a0,a1,'#4da3ff');
   html+=slice(cx,cy,r,a1,a2,'#1a5fc4');
   const mF=(a0+a1)/2*Math.PI/180, mE=(a1+a2)/2*Math.PI/180;
-  html+=`<text x="${(cx+r*0.5*Math.cos(mF)).toFixed(1)}" y="${(cy+r*0.5*Math.sin(mF)).toFixed(1)}" fill="#fff" font-size="17" font-weight="800" text-anchor="middle" dominant-baseline="middle">${fam}%</text>`;
-  html+=`<text x="${(cx+r*0.5*Math.cos(mE)).toFixed(1)}" y="${(cy+r*0.5*Math.sin(mE)).toFixed(1)}" fill="#fff" font-size="17" font-weight="800" text-anchor="middle" dominant-baseline="middle">${emp}%</text>`;
+  html+=`<text x="${(cx+r*0.5*Math.cos(mF)).toFixed(1)}" y="${(cy+r*0.5*Math.sin(mF)).toFixed(1)}" fill="#fff" font-size="20" font-weight="800" text-anchor="middle" dominant-baseline="middle">${fam}%</text>`;
+  html+=`<text x="${(cx+r*0.5*Math.cos(mE)).toFixed(1)}" y="${(cy+r*0.5*Math.sin(mE)).toFixed(1)}" fill="#fff" font-size="20" font-weight="800" text-anchor="middle" dominant-baseline="middle">${emp}%</text>`;
   svg.innerHTML=html;
 }
 function slice(cx,cy,r,a0,a1,color){
