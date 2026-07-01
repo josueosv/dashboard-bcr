@@ -163,7 +163,84 @@
     .grid-mid{grid-template-columns:1fr;}
     .topbar h1{font-size:20px;}
   }
+
+  /* ============================================================
+     MODO LED  ·  se activa con  ?led=1
+     Optimizado para pantalla 1920x640 (muy ancha y baja)
+     ============================================================ */
+  body.led{overflow:hidden;height:100vh;}
+  body.led .sidebar,
+  body.led .topbar,
+  body.led .menu-toggle,
+  body.led .instituciones,
+  body.led .updated,
+  body.led .kpi-row,
+  body.led .grid-mid,
+  body.led .grid-bot{display:none !important;}
+
+  body.led .main{padding:0;height:100vh;display:flex;flex-direction:column;}
+
+  /* Barra superior LED: título + período + reloj + puntos de página */
+  .led-bar{display:none;}
+  body.led .led-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 26px;border-bottom:1px solid var(--card-brd);flex-shrink:0;
+    background:linear-gradient(90deg,var(--bg2),var(--bg));
+  }
+  .led-bar .lb-title{font-size:20px;font-weight:800;letter-spacing:.5px;color:var(--texto);}
+  .led-bar .lb-title small{display:block;font-size:11px;font-weight:600;color:var(--texto2);letter-spacing:.3px;}
+  .led-bar .lb-right{display:flex;align-items:center;gap:22px;}
+  .led-bar .lb-periodo{font-size:16px;font-weight:700;color:var(--azul-claro);letter-spacing:.5px;}
+  .led-bar .lb-clock{font-size:15px;font-weight:600;color:var(--texto2);font-variant-numeric:tabular-nums;}
+  .led-bar .lb-logo{width:40px;height:40px;border-radius:50%;border:2px solid #cfa94d55;
+    display:flex;align-items:center;justify-content:center;font-size:11px;color:#cfa94d;font-weight:800;}
+  .led-dots{display:flex;gap:7px;}
+  .led-dots i{width:9px;height:9px;border-radius:50%;background:#25406e;transition:.3s;}
+  .led-dots i.on{background:var(--azul-claro);width:26px;border-radius:5px;}
+
+  /* Contenedor de páginas del carrusel */
+  .led-stage{display:none;}
+  body.led .led-stage{
+    display:block;flex:1;position:relative;overflow:hidden;
+  }
+  .led-page{
+    position:absolute;inset:0;padding:18px 26px;
+    display:grid;gap:16px;
+    opacity:0;visibility:hidden;transform:translateX(40px);
+    transition:opacity .6s ease, transform .6s ease, visibility .6s;
+  }
+  .led-page.active{opacity:1;visibility:visible;transform:translateX(0);}
+
+  /* Layouts por página (se asignan via clase) */
+  .led-page.p-kpis{grid-template-columns:repeat(5,1fr);align-content:stretch;}
+  .led-page.p-graficos{grid-template-columns:1.1fr 1.1fr 1fr;}
+  .led-page.p-sectores{grid-template-columns:1.4fr 1fr 1.3fr;}
+
+  /* Las tarjetas dentro del stage se estiran a toda la altura disponible */
+  body.led .led-page > .panel,
+  body.led .led-page > .kpi{
+    height:100%;display:flex;flex-direction:column;justify-content:center;
+  }
+  /* KPIs más grandes en LED */
+  body.led .led-page.p-kpis .kpi-val{font-size:34px;}
+  body.led .led-page.p-kpis .kpi-ic{width:52px;height:52px;font-size:24px;}
+  body.led .led-page.p-kpis .kpi-title{font-size:19px;}
+  body.led .led-page.p-kpis .kpi-sub{font-size:13px;}
+  body.led .led-page.p-kpis .kpi-var{font-size:15px;}
+  body.led .led-page .panel h3{font-size:18px;}
+  body.led .led-page .fam .fval{font-size:26px;}
+  body.led .led-page .kpi-val{font-size:30px;}
 </style>
+<script>
+  // Aplica la clase .led ANTES de renderizar para evitar parpadeo
+  (function(){
+    const p = new URLSearchParams(location.search);
+    if(p.get('led')==='1' || p.get('led')==='true'){
+      document.documentElement.classList.add('led-html');
+      document.addEventListener('DOMContentLoaded',()=>document.body.classList.add('led'));
+    }
+  })();
+</script>
 </head>
 <body>
 
@@ -194,6 +271,19 @@
 
 <!-- ============ MAIN ============ -->
 <main class="main">
+  <!-- ===== BARRA SUPERIOR MODO LED ===== -->
+  <div class="led-bar">
+    <div class="lb-title" id="lb-title">INDICADORES FINANCIEROS<small id="lb-sub"></small></div>
+    <div class="lb-right">
+      <span class="lb-periodo" id="lb-periodo"></span>
+      <span class="lb-clock" id="lb-clock"></span>
+      <span class="led-dots" id="led-dots"></span>
+      <span class="lb-logo">BCR</span>
+    </div>
+  </div>
+  <!-- ===== STAGE DEL CARRUSEL (se llena por JS) ===== -->
+  <div class="led-stage" id="led-stage"></div>
+
   <div class="topbar">
     <div>
       <h1 id="titulo">—</h1>
@@ -460,7 +550,103 @@ function scrollInst(dir){
   document.getElementById('inst-track').scrollBy({left:dir*300,behavior:'smooth'});
 }
 
-load();
+/* ============================================================
+   MODO LED · Carrusel de páginas para pantalla 1920x640
+   Se arma clonando las tarjetas ya renderizadas del dashboard.
+   ============================================================ */
+const LED_INTERVAL = 10000; // 10 segundos por página
+let ledTimer = null, ledIndex = 0, ledPages = [];
+
+function isLed(){
+  const p = new URLSearchParams(location.search);
+  return p.get('led')==='1' || p.get('led')==='true';
+}
+
+function buildLed(){
+  const stage = document.getElementById('led-stage');
+  if(!stage) return;
+  stage.innerHTML = '';
+
+  // Referencias a las tarjetas ya renderizadas
+  const kpis = Array.from(document.querySelectorAll('.kpi-row > .kpi'));
+  const panels = document.querySelectorAll('.grid-mid > .panel');   // 0:donut 1:familias 2:pie 3:sectores
+  const bottom = document.querySelectorAll('.grid-bot > .panel');   // 0:activos 1:tasas
+
+  // --- Página 1: los 5 KPIs principales ---
+  const p1 = pageEl('p-kpis');
+  kpis.forEach(k => p1.appendChild(k.cloneNode(true)));
+
+  // --- Página 2: Depósitos por Tipo + Composición + Familias ---
+  const p2 = pageEl('p-graficos');
+  if(panels[0]) p2.appendChild(panels[0].cloneNode(true)); // donut
+  if(panels[2]) p2.appendChild(panels[2].cloneNode(true)); // pie composición
+  if(panels[1]) p2.appendChild(panels[1].cloneNode(true)); // familias
+
+  // --- Página 3: Sectores + Activos + Tasas ---
+  const p3 = pageEl('p-sectores');
+  if(panels[3]) p3.appendChild(panels[3].cloneNode(true)); // sectores
+  if(bottom[0]) p3.appendChild(bottom[0].cloneNode(true));  // activos
+  if(bottom[1]) p3.appendChild(bottom[1].cloneNode(true));  // tasas
+
+  ledPages = [p1, p2, p3];
+  ledPages.forEach(p => stage.appendChild(p));
+
+  // Redibujar los SVG clonados (los clones no copian el innerHTML dinámico correctamente en todos los casos)
+  // Como cloneNode(true) SÍ copia el innerHTML ya generado, los gráficos se ven bien tal cual.
+
+  // Barra superior LED
+  fetch('/api/data').then(r=>r.json()).then(d=>{
+    document.getElementById('lb-title').firstChild.textContent = d.titulo + ' ';
+    document.getElementById('lb-sub').textContent = d.subtitulo || '';
+    document.getElementById('lb-periodo').textContent = d.periodo || '';
+  });
+
+  // Puntos indicadores
+  const dots = document.getElementById('led-dots');
+  dots.innerHTML = ledPages.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('');
+
+  // Arrancar carrusel
+  ledIndex = 0;
+  showLedPage(0);
+  if(ledTimer) clearInterval(ledTimer);
+  ledTimer = setInterval(nextLedPage, LED_INTERVAL);
+
+  // Reloj
+  startClock();
+}
+
+function pageEl(cls){
+  const el = document.createElement('div');
+  el.className = 'led-page ' + cls;
+  return el;
+}
+
+function showLedPage(i){
+  ledPages.forEach((p,idx)=>p.classList.toggle('active', idx===i));
+  const dots = document.querySelectorAll('#led-dots i');
+  dots.forEach((d,idx)=>d.classList.toggle('on', idx===i));
+}
+
+function nextLedPage(){
+  ledIndex = (ledIndex + 1) % ledPages.length;
+  showLedPage(ledIndex);
+}
+
+function startClock(){
+  const el = document.getElementById('lb-clock');
+  const tick = ()=> el.textContent = new Date().toLocaleTimeString('es-SV',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  tick();
+  setInterval(tick, 1000);
+}
+
+// Inicio: renderiza el dashboard y, si aplica, construye el modo LED encima
+(async function init(){
+  await load();
+  if(isLed()){
+    // Espera un frame para asegurar que los SVG ya están en el DOM antes de clonar
+    setTimeout(buildLed, 300);
+  }
+})();
 </script>
 </body>
 </html>
