@@ -659,7 +659,15 @@ function buildLed(){
   fetch('/api/data').then(r=>r.json()).then(d=>{
     document.getElementById('lb-title').firstChild.textContent = d.titulo + ' ';
     document.getElementById('lb-sub').textContent = d.subtitulo || '';
-    document.getElementById('lb-periodo').textContent = d.periodo || '';
+  //  document.getElementById('lb-periodo').textContent = d.periodo || ''; Quite esta opción al agregarlo como comentario.
+  // Lo que estaba haciendo es llamando a un comentario del origen de los datos.
+  const hoy = new Date();
+document.getElementById('lb-periodo').textContent = hoy.toLocaleDateString('es-SV', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'America/El_Salvador'
+});
   });
 
   // Puntos indicadores
@@ -698,7 +706,7 @@ function startClock(){
   const tick = ()=> el.textContent = new Date().toLocaleTimeString('es-SV',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   tick();
   setInterval(tick, 1000);
-}
+ }
 
 // Inicio: renderiza el dashboard y, si aplica, construye el modo LED encima
 (async function init(){
