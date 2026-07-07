@@ -313,19 +313,60 @@ function arrancarRotacion() {
 function dibujarDonut(id, data) {
   const svg = document.getElementById(id);
   const total = data.reduce((a, b) => a + b.valor, 0);
-  const cx = 170, cy = 120, r = 84, rin = 50;
-  let ang = -90, html = '';
+  const cx = 170, cy = 120, r = 67;        // radio del centro del anillo
+  const grosor = 34;                        // ancho del anillo
+  const circ = 2 * Math.PI * r;             // circunferencia completa
+
+  // Construimos cada segmento como un círculo completo recortado con dasharray.
+  let acumulado = 0;
+  let html = '';
+  const segmentos = [];
+
   data.forEach((s, i) => {
-    const frac = s.valor / total, a0 = ang, a1 = ang + frac * 360; ang = a1;
-    html += arcoDonut(cx, cy, r, rin, a0, a1, PALETA[i % 3]);
+    const frac = s.valor / total;
+    const largo = frac * circ;               // longitud de este segmento
+    const inicio = acumulado;                // dónde empieza en el anillo
+    acumulado += largo;
+
+    // Cada segmento es un círculo con el trazo visible solo en su porción.
+    // Empieza oculto (dashoffset = largo) para animarlo después.
+    html += `
+      <circle class="donut-seg" id="${id}-seg-${i}"
+        cx="${cx}" cy="${cy}" r="${r}"
+        fill="none" stroke="${PALETA[i % 3]}" stroke-width="${grosor}"
+        stroke-dasharray="${largo.toFixed(2)} ${(circ - largo).toFixed(2)}"
+        stroke-dashoffset="${(-inicio + largo).toFixed(2)}"
+        transform="rotate(-90 ${cx} ${cy})"
+        style="transition: stroke-dashoffset 0.8s ease-out;" />`;
+
+    // Guardamos el offset final para animar hacia él
+    segmentos.push({ id: `${id}-seg-${i}`, offsetFinal: (-inicio).toFixed(2), pct: s.pct,
+                     anguloMedio: ((inicio + largo / 2) / circ) * 360 });
   });
+
   svg.innerHTML = html;
-}
-function arcoDonut(cx, cy, r, rin, a0, a1, color) {
-  const p = (ang, rad) => [cx + rad * Math.cos(ang * Math.PI / 180), cy + rad * Math.sin(ang * Math.PI / 180)];
-  const large = (a1 - a0) > 180 ? 1 : 0;
-  const [x0, y0] = p(a0, r), [x1, y1] = p(a1, r), [x2, y2] = p(a1, rin), [x3, y3] = p(a0, rin);
-  return `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)} A${rin} ${rin} 0 ${large} 0 ${x3.toFixed(1)} ${y3.toFixed(1)} Z" fill="${color}"/>`;
+
+  // Animar: revelar cada segmento en secuencia
+  segmentos.forEach((seg, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(seg.id);
+      if (el) el.setAttribute('stroke-dashoffset', seg.offsetFinal);
+    }, 200 + i * 700);  // cada segmento arranca 700ms después del anterior
+  });
+
+  // Agregar los porcentajes dentro de cada segmento (tras la animación)
+  setTimeout(() => {
+    let etiquetas = '';
+    segmentos.forEach((seg) => {
+      const ang = (seg.anguloMedio - 90) * Math.PI / 180;
+      const lx = cx + r * Math.cos(ang);
+      const ly = cy + r * Math.sin(ang);
+      etiquetas += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}"
+        fill="#fff" font-size="16" font-weight="800"
+        text-anchor="middle" dominant-baseline="middle">${seg.pct}%</text>`;
+    });
+    svg.innerHTML += etiquetas;
+  }, 200 + segmentos.length * 700 + 400);
 }
 function dibujarPie(id, comp) {
   const svg = document.getElementById(id);
