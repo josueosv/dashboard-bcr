@@ -262,12 +262,12 @@ function dibujarGraficos() {
     dibujarDonut('svg-donut', DATOS.depositosPorTipo);
     document.getElementById('leyenda-donut').innerHTML = DATOS.depositosPorTipo.map((s, i) =>
       `<span><i class="dot" style="background:${PALETA[i % 3]}"></i>${s.nombre}</span>`).join('');
-    document.getElementById('donut-detalle-lista').innerHTML = DATOS.depositosPorTipo.map((s, i) => `
-    <div style="display:flex;align-items:center;gap:10px;margin:14px 0;font-size:18px">
-      <i class="dot" style="width:14px;height:14px;background:${PALETA[i % 3]}"></i>
-      <span>${s.nombre}</span>
-      <span style="font-weight:800;margin-left:14px">${fmtUSD(s.valor)}</span>
-      <span style="color:var(--texto2)">${s.pct}%</span>
+      document.getElementById('donut-detalle-lista').innerHTML = DATOS.depositosPorTipo.map((s, i) => `
+    <div style="display:flex;align-items:center;gap:14px;margin:22px 0;font-size:36px">
+      <i class="dot" style="width:24px;height:24px;background:${PALETA[i % 3]}"></i>
+      <span style="width:220px">${s.nombre}</span>
+      <span style="font-weight:800;width:200px;text-align:right">${fmtUSD(s.valor)}</span>
+      <span style="color:var(--texto2);width:120px;text-align:right">${s.pct}%</span>
     </div>`).join('');
   }
   if (document.getElementById('svg-pie')) {
