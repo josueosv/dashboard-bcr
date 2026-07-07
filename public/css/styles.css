@@ -1,0 +1,172 @@
+/* ============================================================
+   Dashboard BCR · Vista principal 1920x640
+   Tema oscuro. Franja superior fija + escenario central rotativo.
+   ============================================================ */
+
+:root{
+  --bg:#060d1c;
+  --bg2:#0a1730;
+  --card:#0d1c3a;
+  --card2:#0f2044;
+  --card-brd:#17305e;
+  --azul:#2e8bff;
+  --azul-claro:#4da3ff;
+  --azul-mid:#1f6fe0;
+  --azul-dark:#123a80;
+  --texto:#eef4ff;
+  --texto2:#8ba3c7;
+  --texto3:#5f78a0;
+  --verde:#2fd07a;
+  --amarillo:#cfa94d;
+  --glow:rgba(46,139,255,.15);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+html,body{
+  width:100%;height:100%;
+  background:var(--bg);color:var(--texto);
+  font-family:'Segoe UI',-apple-system,system-ui,Roboto,Arial,sans-serif;
+  overflow:hidden;
+}
+
+/* Contenedor raíz: ocupa toda la pantalla, columna vertical */
+#pantalla{
+  width:100vw;height:100vh;
+  display:flex;flex-direction:column;
+  background:radial-gradient(ellipse at top, #0a1730 0%, #060d1c 70%);
+}
+
+/* ============================================================
+   FRANJA SUPERIOR FIJA
+   ============================================================ */
+#franja-superior{
+  flex-shrink:0;
+  display:flex;align-items:center;gap:24px;
+  padding:14px 28px;
+  border-bottom:1px solid var(--card-brd);
+  background:linear-gradient(90deg,var(--bg2),var(--bg));
+}
+
+/* Marca (título) */
+#marca{flex-shrink:0;min-width:280px;}
+#marca-titulo{font-size:22px;font-weight:800;letter-spacing:.5px;line-height:1.1;}
+#marca-subtitulo{font-size:11px;font-weight:600;color:var(--texto2);letter-spacing:.3px;margin-top:2px;}
+
+/* Contenedor de los 5 KPIs compactos */
+#kpis-fijos{
+  flex:1;
+  display:grid;grid-template-columns:repeat(5,1fr);gap:12px;
+}
+
+/* Cada tarjeta KPI compacta */
+.kpi{
+  background:var(--card);border:1px solid var(--card-brd);border-radius:10px;
+  padding:8px 12px;
+  display:flex;flex-direction:column;justify-content:center;
+  min-height:64px;
+}
+.kpi-label{font-size:12px;font-weight:600;color:var(--texto2);}
+.kpi-valor{font-size:20px;font-weight:800;line-height:1.1;letter-spacing:.2px;white-space:nowrap;}
+.kpi-var{font-size:11px;font-weight:700;color:var(--verde);margin-top:2px;}
+.kpi-var.up::before{content:"▲ ";font-size:8px;}
+.kpi-var.kpi-ref{color:var(--texto3);font-weight:600;}
+
+/* Reloj / fecha / logo */
+#reloj{
+  flex-shrink:0;
+  display:flex;align-items:center;gap:16px;
+}
+#reloj-fecha{font-size:15px;font-weight:700;color:var(--azul-claro);letter-spacing:.4px;text-align:right;}
+#reloj-hora{font-size:15px;font-weight:600;color:var(--texto2);font-variant-numeric:tabular-nums;
+  border-left:1px solid var(--card-brd);padding-left:16px;}
+#marca-bcr{
+  width:44px;height:44px;border-radius:50%;
+  border:2px solid var(--amarillo);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:var(--amarillo);flex-shrink:0;
+}
+
+/* ============================================================
+   ESCENARIO CENTRAL ROTATIVO
+   ============================================================ */
+#escenario{
+  flex:1;position:relative;overflow:hidden;
+}
+
+/* Cada capítulo ocupa todo el escenario, apilados.
+   El activo está en translateX(0); los demás fuera a la derecha.
+   SOLO transform (deslizamiento sólido) — nada de opacity. */
+.capitulo{
+  position:absolute;inset:0;
+  padding:24px 40px;
+  display:flex;flex-direction:column;
+  transform:translateX(100%);
+  transition:transform 0.7s ease-in-out;
+}
+.capitulo.activo{transform:translateX(0);}
+.capitulo.saliendo{transform:translateX(-100%);}
+
+/* Título de cada capítulo */
+.cap-titulo{font-size:26px;font-weight:800;margin-bottom:2px;}
+.cap-subtitulo{font-size:13px;color:var(--texto2);margin-bottom:16px;}
+.cap-cuerpo{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;}
+
+/* ---------- Capítulo tipo GRÁFICO DENSO ---------- */
+.cap-grid{display:grid;gap:28px;width:100%;height:100%;align-items:center;}
+.cap-grid.dos-cols{grid-template-columns:1fr 1fr;}
+.cap-grid.tres-cols{grid-template-columns:1.1fr 1fr 1fr;}
+
+.bloque{display:flex;flex-direction:column;height:100%;justify-content:center;}
+.bloque h3{font-size:18px;font-weight:700;margin-bottom:4px;}
+.bloque .bsub{font-size:12px;color:var(--texto2);margin-bottom:12px;}
+.chart-wrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;}
+.leyenda{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;font-size:13px;color:var(--texto2);margin-top:8px;}
+.leyenda span{display:flex;align-items:center;gap:6px;}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+
+/* Barras de sector */
+.sector-item{display:flex;align-items:center;gap:12px;padding:10px 0;
+  border-bottom:1px solid rgba(23,48,94,.5);font-size:14px;}
+.sector-item:last-child{border-bottom:none;}
+.sector-nombre{width:150px;flex-shrink:0;color:var(--texto);}
+.sector-track{flex:1;height:16px;background:#081a3a;border-radius:8px;overflow:hidden;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.4);}
+.sector-fill{height:100%;border-radius:8px;
+  background:linear-gradient(90deg,var(--azul-mid),var(--azul-claro));
+  box-shadow:0 0 10px rgba(46,139,255,.4);}
+.sector-valor{width:90px;text-align:right;font-weight:700;color:var(--azul-claro);}
+
+/* Familias (consumo / vivienda) */
+.familia-item{display:flex;align-items:center;gap:18px;margin:18px 0;}
+.familia-ic{width:60px;height:60px;border-radius:14px;background:var(--card2);
+  border:1px solid var(--card-brd);display:flex;align-items:center;justify-content:center;
+  font-size:28px;flex-shrink:0;}
+.familia-tit{font-size:15px;color:var(--texto2);}
+.familia-val{font-size:30px;font-weight:800;line-height:1.1;}
+.familia-var{font-size:14px;color:var(--verde);font-weight:700;}
+
+/* ---------- Capítulo tipo CIFRA GIGANTE ---------- */
+.cap-impacto{
+  align-items:center;justify-content:center;text-align:center;
+}
+.impacto-mensaje{font-size:22px;font-weight:600;color:var(--texto2);letter-spacing:1px;text-transform:uppercase;}
+.impacto-cifra{font-size:110px;font-weight:800;line-height:1;letter-spacing:1px;
+  margin:10px 0;text-shadow:0 0 40px rgba(46,139,255,.4);}
+.impacto-unidad{font-size:24px;color:var(--texto2);}
+.impacto-detalle{font-size:20px;color:var(--verde);font-weight:700;margin-top:14px;}
+.impacto-detalle .cmp{color:var(--texto2);font-weight:500;}
+
+/* ============================================================
+   INDICADORES DE CAPÍTULO (puntos abajo)
+   ============================================================ */
+#indicadores-capitulo{
+  flex-shrink:0;
+  display:flex;gap:8px;justify-content:center;align-items:center;
+  padding:10px 0 14px;
+}
+#indicadores-capitulo i{
+  width:9px;height:9px;border-radius:50%;background:#25406e;
+  transition:all .3s;display:inline-block;
+}
+#indicadores-capitulo i.on{background:var(--azul-claro);width:28px;border-radius:5px;}
