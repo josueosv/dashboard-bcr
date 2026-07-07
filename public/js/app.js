@@ -263,12 +263,12 @@ function dibujarGraficos() {
     document.getElementById('leyenda-donut').innerHTML = DATOS.depositosPorTipo.map((s, i) =>
       `<span><i class="dot" style="background:${PALETA[i % 3]}"></i>${s.nombre}</span>`).join('');
     document.getElementById('donut-detalle-lista').innerHTML = DATOS.depositosPorTipo.map((s, i) => `
-      <div style="display:flex;align-items:center;gap:12px;margin:14px 0;font-size:18px">
-        <i class="dot" style="width:14px;height:14px;background:${PALETA[i % 3]}"></i>
-        <span style="flex:1">${s.nombre}</span>
-        <span style="font-weight:800">${fmtUSD(s.valor)}</span>
-        <span style="color:var(--texto2);width:60px;text-align:right">${s.pct}%</span>
-      </div>`).join('');
+    <div style="display:flex;align-items:center;gap:10px;margin:14px 0;font-size:18px">
+      <i class="dot" style="width:14px;height:14px;background:${PALETA[i % 3]}"></i>
+      <span>${s.nombre}</span>
+      <span style="font-weight:800;margin-left:14px">${fmtUSD(s.valor)}</span>
+      <span style="color:var(--texto2)">${s.pct}%</span>
+    </div>`).join('');
   }
   if (document.getElementById('svg-pie')) {
     dibujarPie('svg-pie', DATOS.composicionPrestamos);
