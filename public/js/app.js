@@ -1,15 +1,18 @@
 /* ============================================================
    Dashboard BCR · app.js
    Vista principal 1920x640
-   - Franja superior fija (KPIs + reloj en vivo)
-   - Escenario central que rota capítulos con deslizamiento sólido
-   Cada elemento tiene id individual para animación futura.
+   - Franja superior fija (KPIs + reloj)
+   - Cuerpo de dos secciones: lateral-índice + central rotativo
+   Transiciones SIN opacidad. Dos modos conmutables:
+     MODO_TRANSICION = 'corte'  -> desaparece/aparece instantáneo
+     MODO_TRANSICION = 'desliza'-> deslizamiento sólido
    ============================================================ */
 
 // ---------- Configuración ----------
-const CAPITULO_DURACION = 12000; // ms que cada capítulo permanece visible
+const CAPITULO_DURACION = 12000;        // ms por capítulo
+const MODO_TRANSICION = 'corte';        // 'corte' o 'desliza'  <-- cambia aquí para probar
 
-// ---------- Utilidades de formato ----------
+// ---------- Utilidades ----------
 const fmtUSD = (n) => 'US$' + Number(n).toLocaleString('en-US', {
   minimumFractionDigits: 1, maximumFractionDigits: 1
 });
@@ -17,7 +20,7 @@ const PALETA = ['#2e8bff', '#1a5fc4', '#4da3ff'];
 
 // ---------- Estado ----------
 let DATOS = null;
-let capitulos = [];      // definiciones de capítulos
+let capitulos = [];
 let capIndex = 0;
 let capTimer = null;
 
@@ -35,39 +38,33 @@ async function iniciar() {
   renderFranjaSuperior();
   iniciarReloj();
   construirCapitulos();
-  montarEscenario();
+  montarLateral();
+  montarCentral();
   arrancarRotacion();
 }
 
 // ============================================================
-//  FRANJA SUPERIOR (KPIs fijos)
+//  FRANJA SUPERIOR
 // ============================================================
 function renderFranjaSuperior() {
   const k = DATOS.kpis;
   const cmp = DATOS.comparaCon ? 'vs. ' + DATOS.comparaCon : '';
-
   setKpi('depositos', fmtUSD(k.depositos.valor), k.depositos.var + '% ' + cmp, 'up');
   setKpi('prestamos', fmtUSD(k.prestamos.valor), k.prestamos.var + '% ' + cmp, 'up');
   setKpi('utilidad',  fmtUSD(k.utilidad.valor),  k.utilidad.var + '% ' + cmp, 'up');
-
-  // Mora y Solvencia muestran referencia en vez de variación
   document.getElementById('kpi-mora-valor').textContent = k.mora.valor + '%';
   document.getElementById('kpi-mora-ref').textContent = 'Estándar: ' + k.mora.estandar + '%';
   document.getElementById('kpi-solvencia-valor').textContent = k.solvencia.valor + ' %';
   document.getElementById('kpi-solvencia-ref').textContent = 'Legal: ' + k.solvencia.parametro + '%';
 }
-
 function setKpi(nombre, valor, variacion, clase) {
   document.getElementById('kpi-' + nombre + '-valor').textContent = valor;
   const elVar = document.getElementById('kpi-' + nombre + '-var');
-  if (elVar) {
-    elVar.textContent = variacion;
-    elVar.classList.add(clase);
-  }
+  if (elVar) { elVar.textContent = variacion; elVar.classList.add(clase); }
 }
 
 // ============================================================
-//  RELOJ EN VIVO (zona horaria El Salvador)
+//  RELOJ (El Salvador)
 // ============================================================
 function iniciarReloj() {
   const elFecha = document.getElementById('reloj-fecha');
@@ -87,124 +84,126 @@ function iniciarReloj() {
 
 // ============================================================
 //  DEFINICIÓN DE CAPÍTULOS
-//  Cada capítulo devuelve un elemento <section> con id propio.
-//  Alternamos densos e impacto para dar ritmo narrativo.
+//  Cada uno define: id, nombre e info para el lateral, y su render central.
 // ============================================================
 function construirCapitulos() {
+  const d = DATOS;
   capitulos = [
-    { id: 'cap-depositos',    tipo: 'denso',   crear: capDepositos },
-    { id: 'cap-activos',      tipo: 'impacto', crear: capActivos },
-    { id: 'cap-composicion',  tipo: 'denso',   crear: capComposicion },
-    { id: 'cap-utilidad',     tipo: 'impacto', crear: capUtilidad },
-    { id: 'cap-sectores',     tipo: 'denso',   crear: capSectores },
-    { id: 'cap-familias',     tipo: 'denso',   crear: capFamilias },
+    {
+      id: 'cap-depositos',
+      latTitulo: 'Depósitos por Tipo',
+      latDato: 'Total 3 tipos · A Plazo 38.1%',
+      crear: capDepositos
+    },
+    {
+      id: 'cap-activos',
+      latTitulo: 'Activos',
+      latDato: fmtUSD(d.kpis.activos.valor) + ' M',
+      crear: capActivos
+    },
+    {
+      id: 'cap-composicion',
+      latTitulo: 'Composición de Préstamos',
+      latDato: 'Familias ' + d.composicionPrestamos.familias + '% · Empresas ' + d.composicionPrestamos.empresas + '%',
+      crear: capComposicion
+    },
+    {
+      id: 'cap-utilidad',
+      latTitulo: 'Utilidad',
+      latDato: fmtUSD(d.kpis.utilidad.valor) + ' M · ▲ ' + d.kpis.utilidad.var + '%',
+      crear: capUtilidad
+    },
+    {
+      id: 'cap-sectores',
+      latTitulo: 'Préstamos por Sector',
+      latDato: 'Top: Construcción ' + fmtUSD(d.prestamosEmpresasSector[0].valor),
+      crear: capSectores
+    },
+    {
+      id: 'cap-familias',
+      latTitulo: 'Préstamos a Familias',
+      latDato: 'Consumo ' + fmtUSD(d.prestamosFamilias.consumo.valor),
+      crear: capFamilias
+    },
   ];
 }
 
-// ---------- Capítulo: Depósitos por Tipo (donut) ----------
+// ---------- Renders de cada capítulo ----------
 function capDepositos() {
   const sec = crearSeccion('cap-depositos', 'Depósitos por Tipo', 'US$ millones y % del Total');
-  const cuerpo = sec.querySelector('.cap-cuerpo');
-  cuerpo.innerHTML = `
+  sec.querySelector('.cap-cuerpo').innerHTML = `
     <div class="cap-grid dos-cols">
-      <div class="bloque" id="bloque-donut">
+      <div class="bloque">
         <div class="chart-wrap"><svg id="svg-donut" viewBox="0 0 340 240" width="100%" style="max-width:420px"></svg></div>
         <div class="leyenda" id="leyenda-donut"></div>
       </div>
-      <div class="bloque" id="bloque-donut-detalle">
-        <div id="donut-detalle-lista"></div>
-      </div>
+      <div class="bloque"><div id="donut-detalle-lista"></div></div>
     </div>`;
   return sec;
 }
-
-// ---------- Capítulo: Activos (cifra gigante) ----------
 function capActivos() {
   const sec = crearSeccionImpacto('cap-activos');
   const k = DATOS.kpis.activos;
-  sec.querySelector('.cap-impacto').innerHTML = `
+  sec.querySelector('.cap-impacto-inner').innerHTML = `
     <div class="impacto-mensaje">Activos totales del sistema</div>
-    <div class="impacto-cifra" id="activos-cifra">${fmtUSD(k.valor)}</div>
+    <div class="impacto-cifra">${fmtUSD(k.valor)}</div>
     <div class="impacto-unidad">millones</div>
     <div class="impacto-detalle">▲ ${k.var}% <span class="cmp">vs. ${DATOS.comparaCon || ''}</span></div>`;
   return sec;
 }
-
-// ---------- Capítulo: Composición de Préstamos (pie) ----------
 function capComposicion() {
   const sec = crearSeccion('cap-composicion', 'Composición de Préstamos', 'Familias vs. Empresas');
-  const cuerpo = sec.querySelector('.cap-cuerpo');
-  cuerpo.innerHTML = `
+  sec.querySelector('.cap-cuerpo').innerHTML = `
     <div class="cap-grid dos-cols">
       <div class="bloque">
         <div class="chart-wrap"><svg id="svg-pie" viewBox="0 0 240 240" width="100%" style="max-width:340px"></svg></div>
         <div class="leyenda" id="leyenda-pie"></div>
       </div>
-      <div class="bloque" id="bloque-familias-mini">
-        <div id="familias-mini-lista"></div>
-      </div>
+      <div class="bloque"><div id="familias-mini-lista"></div></div>
     </div>`;
   return sec;
 }
-
-// ---------- Capítulo: Utilidad (cifra gigante) ----------
 function capUtilidad() {
   const sec = crearSeccionImpacto('cap-utilidad');
   const k = DATOS.kpis.utilidad;
-  sec.querySelector('.cap-impacto').innerHTML = `
+  sec.querySelector('.cap-impacto-inner').innerHTML = `
     <div class="impacto-mensaje">Utilidad del sistema financiero</div>
-    <div class="impacto-cifra" id="utilidad-cifra">${fmtUSD(k.valor)}</div>
+    <div class="impacto-cifra">${fmtUSD(k.valor)}</div>
     <div class="impacto-unidad">millones</div>
     <div class="impacto-detalle">▲ ${k.var}% <span class="cmp">vs. ${DATOS.comparaCon || ''}</span></div>`;
   return sec;
 }
-
-// ---------- Capítulo: Préstamos por Sector (barras) ----------
 function capSectores() {
   const sec = crearSeccion('cap-sectores', 'Préstamos Empresas por Sector', 'Var. USD Millones');
-  const cuerpo = sec.querySelector('.cap-cuerpo');
   const sectores = DATOS.prestamosEmpresasSector;
   const max = Math.max(...sectores.map(s => s.valor));
-  cuerpo.innerHTML = `<div style="width:100%;max-width:1100px" id="sectores-lista">` +
+  sec.querySelector('.cap-cuerpo').innerHTML = `<div style="width:100%;max-width:1100px">` +
     sectores.map((s, i) => `
-      <div class="sector-item" id="sector-${i}">
+      <div class="sector-item">
         <div class="sector-nombre">${s.sector}</div>
         <div class="sector-track"><div class="sector-fill" style="width:${(s.valor / max * 100).toFixed(1)}%"></div></div>
         <div class="sector-valor">${fmtUSD(s.valor)}</div>
       </div>`).join('') + `</div>`;
   return sec;
 }
-
-// ---------- Capítulo: Préstamos a Familias ----------
 function capFamilias() {
   const sec = crearSeccion('cap-familias', 'Préstamos a Familias', 'Saldo y Var.%');
-  const cuerpo = sec.querySelector('.cap-cuerpo');
   const f = DATOS.prestamosFamilias;
-  cuerpo.innerHTML = `
+  sec.querySelector('.cap-cuerpo').innerHTML = `
     <div style="display:flex;gap:60px;align-items:center;justify-content:center;width:100%">
-      <div class="familia-item" id="familia-consumo">
+      <div class="familia-item">
         <div class="familia-ic">🛒</div>
-        <div>
-          <div class="familia-tit">Consumo</div>
-          <div class="familia-val">${fmtUSD(f.consumo.valor)}</div>
-          <div class="familia-var">▲ ${f.consumo.var}%</div>
-        </div>
+        <div><div class="familia-tit">Consumo</div><div class="familia-val">${fmtUSD(f.consumo.valor)}</div><div class="familia-var">▲ ${f.consumo.var}%</div></div>
       </div>
-      <div class="familia-item" id="familia-vivienda">
+      <div class="familia-item">
         <div class="familia-ic">🏠</div>
-        <div>
-          <div class="familia-tit">Vivienda</div>
-          <div class="familia-val">${fmtUSD(f.vivienda.valor)}</div>
-          <div class="familia-var">▲ ${f.vivienda.var}%</div>
-        </div>
+        <div><div class="familia-tit">Vivienda</div><div class="familia-val">${fmtUSD(f.vivienda.valor)}</div><div class="familia-var">▲ ${f.vivienda.var}%</div></div>
       </div>
     </div>`;
   return sec;
 }
 
-// ============================================================
-//  HELPERS PARA CREAR SECCIONES
-// ============================================================
+// ---------- Helpers de sección ----------
 function crearSeccion(id, titulo, subtitulo) {
   const sec = document.createElement('section');
   sec.className = 'capitulo';
@@ -215,42 +214,50 @@ function crearSeccion(id, titulo, subtitulo) {
     <div class="cap-cuerpo"></div>`;
   return sec;
 }
-
 function crearSeccionImpacto(id) {
   const sec = document.createElement('section');
-  sec.className = 'capitulo cap-impacto';
+  sec.className = 'capitulo';
   sec.id = id;
-  sec.innerHTML = `<div class="cap-impacto" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%"></div>`;
+  sec.innerHTML = `<div class="cap-impacto-inner"></div>`;
   return sec;
 }
 
 // ============================================================
-//  MONTAJE DEL ESCENARIO
+//  LATERAL (índice-resumen)
 // ============================================================
-function montarEscenario() {
-  const escenario = document.getElementById('escenario');
-  escenario.innerHTML = '';
+function montarLateral() {
+  const lista = document.getElementById('lateral-lista');
+  lista.innerHTML = capitulos.map((c, i) => `
+    <div class="lat-item" id="lat-${i}">
+      <div class="lat-marca"></div>
+      <div class="lat-nombre">
+        <div class="ln-titulo">${c.latTitulo}</div>
+        <div class="ln-dato">${c.latDato}</div>
+      </div>
+    </div>`).join('');
+}
+function resaltarLateral(i) {
+  document.querySelectorAll('.lat-item').forEach((el, idx) =>
+    el.classList.toggle('activo', idx === i));
+}
 
-  // Crear todos los capítulos y añadirlos
-  capitulos.forEach((cap, i) => {
+// ============================================================
+//  CENTRAL
+// ============================================================
+function montarCentral() {
+  const central = document.getElementById('central');
+  central.className = MODO_TRANSICION === 'desliza' ? 'modo-desliza' : 'modo-corte';
+  central.innerHTML = '';
+  capitulos.forEach((cap) => {
     const el = cap.crear();
-    escenario.appendChild(el);
+    central.appendChild(el);
     cap.elemento = el;
   });
-
-  // Dibujar los gráficos de cada capítulo (ya están en el DOM)
   dibujarGraficos();
-
-  // Indicadores (puntos)
-  const ind = document.getElementById('indicadores-capitulo');
-  ind.innerHTML = capitulos.map((_, i) => `<i class="${i === 0 ? 'on' : ''}"></i>`).join('');
-
-  // Mostrar el primero
   mostrarCapitulo(0, true);
 }
 
 function dibujarGraficos() {
-  // Donut de depósitos
   if (document.getElementById('svg-donut')) {
     dibujarDonut('svg-donut', DATOS.depositosPorTipo);
     document.getElementById('leyenda-donut').innerHTML = DATOS.depositosPorTipo.map((s, i) =>
@@ -263,7 +270,6 @@ function dibujarGraficos() {
         <span style="color:var(--texto2);width:60px;text-align:right">${s.pct}%</span>
       </div>`).join('');
   }
-  // Pie de composición
   if (document.getElementById('svg-pie')) {
     dibujarPie('svg-pie', DATOS.composicionPrestamos);
     document.getElementById('leyenda-pie').innerHTML =
@@ -282,38 +288,27 @@ function dibujarGraficos() {
   }
 }
 
-// ============================================================
-//  ROTACIÓN DE CAPÍTULOS (deslizamiento sólido, sin opacidad)
-// ============================================================
+// ---------- Rotación (sin opacidad) ----------
 function mostrarCapitulo(i, inmediato) {
   capitulos.forEach((cap, idx) => {
     const el = cap.elemento;
     el.classList.remove('activo', 'saliendo');
-    if (idx === i) {
-      el.classList.add('activo');
-    } else if (idx < i) {
-      el.classList.add('saliendo'); // los anteriores quedan a la izquierda
-    }
-    // los posteriores quedan a la derecha (estado por defecto translateX(100%))
+    if (idx === i) el.classList.add('activo');
+    else if (idx < i) el.classList.add('saliendo');
   });
-  // Puntos indicadores
-  document.querySelectorAll('#indicadores-capitulo i').forEach((d, idx) =>
-    d.classList.toggle('on', idx === i));
+  resaltarLateral(i);
   capIndex = i;
 }
-
 function siguienteCapitulo() {
-  const next = (capIndex + 1) % capitulos.length;
-  mostrarCapitulo(next);
+  mostrarCapitulo((capIndex + 1) % capitulos.length);
 }
-
 function arrancarRotacion() {
   if (capTimer) clearInterval(capTimer);
   capTimer = setInterval(siguienteCapitulo, CAPITULO_DURACION);
 }
 
 // ============================================================
-//  GRÁFICOS SVG (donut y pie)
+//  GRÁFICOS SVG
 // ============================================================
 function dibujarDonut(id, data) {
   const svg = document.getElementById(id);
@@ -332,7 +327,6 @@ function arcoDonut(cx, cy, r, rin, a0, a1, color) {
   const [x0, y0] = p(a0, r), [x1, y1] = p(a1, r), [x2, y2] = p(a1, rin), [x3, y3] = p(a0, rin);
   return `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)} A${rin} ${rin} 0 ${large} 0 ${x3.toFixed(1)} ${y3.toFixed(1)} Z" fill="${color}"/>`;
 }
-
 function dibujarPie(id, comp) {
   const svg = document.getElementById(id);
   const cx = 120, cy = 120, r = 100;
@@ -353,7 +347,5 @@ function rebanadaPie(cx, cy, r, a0, a1, color) {
   return `<path d="M${cx} ${cy} L${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z" fill="${color}"/>`;
 }
 
-// ============================================================
-//  ARRANQUE
 // ============================================================
 iniciar();

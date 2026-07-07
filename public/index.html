@@ -9,8 +9,10 @@
 <body>
 
 <!-- ============================================================
-     PANTALLA PRINCIPAL · diseñada para 1920x640 (pantalla LED)
-     Estructura: franja superior fija + escenario central rotativo
+     PANTALLA PRINCIPAL · 1920x640
+     Franja superior fija (KPIs) + cuerpo de DOS secciones:
+       - Lateral izquierdo: índice-resumen (resalta el activo)
+       - Central: dato ampliado que rota
      ============================================================ -->
 <div id="pantalla">
 
@@ -20,8 +22,6 @@
       <div id="marca-titulo">INDICADORES FINANCIEROS</div>
       <div id="marca-subtitulo">DEL SISTEMA FINANCIERO (TODAS LAS INSTITUCIONES)</div>
     </div>
-
-    <!-- 5 KPIs compactos, cada uno con id individual -->
     <div id="kpis-fijos">
       <div class="kpi" id="kpi-depositos">
         <div class="kpi-label">Depósitos</div>
@@ -49,8 +49,6 @@
         <div class="kpi-var" id="kpi-utilidad-var"></div>
       </div>
     </div>
-
-    <!-- Reloj y fecha en vivo -->
     <div id="reloj">
       <div id="reloj-fecha">—</div>
       <div id="reloj-hora">—</div>
@@ -58,14 +56,23 @@
     </div>
   </header>
 
-  <!-- ===== ESCENARIO CENTRAL ROTATIVO ===== -->
-  <main id="escenario">
-    <!-- Los capítulos se inyectan aquí desde app.js.
-         Cada capítulo es una <section class="capitulo" id="cap-xxx"> -->
-  </main>
+  <!-- ===== CUERPO: DOS SECCIONES ===== -->
+  <div id="cuerpo">
 
-  <!-- ===== INDICADORES DE CAPÍTULO (puntos) ===== -->
-  <div id="indicadores-capitulo"></div>
+    <!-- Lateral izquierdo: índice-resumen -->
+    <aside id="lateral">
+      <div id="lateral-titulo">Resumen general</div>
+      <div id="lateral-lista">
+        <!-- ítems inyectados desde app.js -->
+      </div>
+    </aside>
+
+    <!-- Central: dato ampliado rotativo -->
+    <main id="central">
+      <!-- capítulos inyectados desde app.js -->
+    </main>
+
+  </div>
 
 </div>
 
