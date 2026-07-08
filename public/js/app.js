@@ -338,15 +338,13 @@ function dibujarDonut(id, data) {
 
   // Animar cada segmento en secuencia: su ángulo "actual" crece de inicio a fin
   segmentos.forEach((seg, i) => {
-    anime({
-      targets: seg,
+    anime.animate(seg, {
       actual: seg.fin,
       duration: 650,
-      delay: i * 650,               // cada uno arranca tras el anterior
-      easing: 'easeInOutSine',
-      update: redibujar,
-      complete: () => {
-        // al terminar el último, colocar los porcentajes
+      delay: i * 650,
+      ease: 'inOutSine',
+      onUpdate: redibujar,
+      onComplete: () => {
         if (i === segmentos.length - 1) colocarPorcentajes();
       }
     });
