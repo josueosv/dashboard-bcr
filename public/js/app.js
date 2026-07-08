@@ -337,7 +337,7 @@ function dibujarDonut(id, data) {
 
   // Función que redibuja todos los arcos según su ángulo "actual"
 
-  function animarConteoActivos() {
+function animarConteoActivos() {
   const el = document.getElementById('activos-cifra');
   if (!el) return;
   const objetivo = DATOS.kpis.activos.valor;
