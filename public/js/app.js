@@ -300,7 +300,6 @@ function mostrarCapitulo(i, inmediato) {
   capIndex = i;
 
   // Re-disparar animaciones del capítulo que se acaba de activar
-  // Re-disparar animaciones del capítulo que se acaba de activar
   const capActivo = capitulos[i];
   if (capActivo.id === 'cap-depositos' && document.getElementById('svg-donut')) {
     dibujarDonut('svg-donut', DATOS.depositosPorTipo);
@@ -334,9 +333,8 @@ function dibujarDonut(id, data) {
     ang = fin;
     return { inicio, fin, color: PALETA[i % 3], pct: s.pct, actual: inicio };
   });
-  }
-  // Función que redibuja todos los arcos según su ángulo "actual"
 
+  // Función que redibuja todos los arcos según su ángulo "actual"
   function redibujar() {
     let html = '';
     segmentos.forEach(seg => {
@@ -346,21 +344,7 @@ function dibujarDonut(id, data) {
     });
     svg.innerHTML = html;
   }
-  function animarConteoActivos() {
-    const el = document.getElementById('activos-cifra');
-    if (!el) return;
-    const objetivo = DATOS.kpis.activos.valor;
-    const contador = { valor: 0 };
 
-    anime.animate(contador, {
-      valor: objetivo,
-      duration: 1600,
-      ease: 'outCubic',
-      onUpdate: () => {
-        el.textContent = fmtUSD(contador.valor);
-      }
-    });
-  }
   // Animar cada segmento en secuencia: su ángulo "actual" crece de inicio a fin
   segmentos.forEach((seg, i) => {
     anime.animate(seg, {
@@ -420,6 +404,25 @@ function rebanadaPie(cx, cy, r, a0, a1, color) {
   const large = (a1 - a0) > 180 ? 1 : 0;
   const [x0, y0] = p(a0), [x1, y1] = p(a1);
   return `<path d="M${cx} ${cy} L${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z" fill="${color}"/>`;
+}
+
+// ============================================================
+//  ANIMACIÓN DE CONTEO (Activos)
+// ============================================================
+function animarConteoActivos() {
+  const el = document.getElementById('activos-cifra');
+  if (!el) return;
+  const objetivo = DATOS.kpis.activos.valor;
+  const contador = { valor: 0 };
+
+  anime.animate(contador, {
+    valor: objetivo,
+    duration: 1600,
+    ease: 'outCubic',
+    onUpdate: () => {
+      el.textContent = fmtUSD(contador.valor);
+    }
+  });
 }
 
 // ============================================================
