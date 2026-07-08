@@ -298,6 +298,12 @@ function mostrarCapitulo(i, inmediato) {
   });
   resaltarLateral(i);
   capIndex = i;
+
+  // Re-disparar animaciones del capítulo que se acaba de activar
+  const capActivo = capitulos[i];
+  if (capActivo.id === 'cap-depositos' && document.getElementById('svg-donut')) {
+    dibujarDonut('svg-donut', DATOS.depositosPorTipo);
+  }
 }
 function siguienteCapitulo() {
   mostrarCapitulo((capIndex + 1) % capitulos.length);
