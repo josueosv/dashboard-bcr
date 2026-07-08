@@ -340,9 +340,10 @@ function dibujarDonut(id, data) {
   segmentos.forEach((seg, i) => {
     anime.animate(seg, {
       actual: seg.fin,
-      duration: 650,
-      delay: i * 650,
-      ease: 'inOutSine',
+      duration: 600,
+      delay: i * 600,
+      ease: 'linear',
+      // Se cambio ease a linear para que no se perciba corte entre segmentos
       onUpdate: redibujar,
       onComplete: () => {
         if (i === segmentos.length - 1) colocarPorcentajes();
