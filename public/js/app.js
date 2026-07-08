@@ -146,7 +146,7 @@ function capActivos() {
   const k = DATOS.kpis.activos;
   sec.querySelector('.cap-impacto-inner').innerHTML = `
     <div class="impacto-mensaje">Activos totales del sistema</div>
-    <div class="impacto-cifra">${fmtUSD(k.valor)}</div>
+    <div class="impacto-cifra" id="activos-cifra">${fmtUSD(k.valor)}</div>
     <div class="impacto-unidad">millones</div>
     <div class="impacto-detalle">▲ ${k.var}% <span class="cmp">vs. ${DATOS.comparaCon || ''}</span></div>`;
   return sec;
@@ -300,9 +300,13 @@ function mostrarCapitulo(i, inmediato) {
   capIndex = i;
 
   // Re-disparar animaciones del capítulo que se acaba de activar
+  // Re-disparar animaciones del capítulo que se acaba de activar
   const capActivo = capitulos[i];
   if (capActivo.id === 'cap-depositos' && document.getElementById('svg-donut')) {
     dibujarDonut('svg-donut', DATOS.depositosPorTipo);
+  }
+  if (capActivo.id === 'cap-activos') {
+    animarConteoActivos();
   }
 }
 function siguienteCapitulo() {
@@ -332,6 +336,22 @@ function dibujarDonut(id, data) {
   });
 
   // Función que redibuja todos los arcos según su ángulo "actual"
+
+  function animarConteoActivos() {
+  const el = document.getElementById('activos-cifra');
+  if (!el) return;
+  const objetivo = DATOS.kpis.activos.valor;
+  const contador = { valor: 0 };   // arranca en 0
+
+  anime.animate(contador, {
+    valor: objetivo,
+    duration: 1600,
+    ease: 'out(3)',        // rápido al inicio, desacelera al final (aterriza suave)
+    onUpdate: () => {
+      el.textContent = fmtUSD(contador.valor);
+    }
+  });
+}
   function redibujar() {
     let html = '';
     segmentos.forEach(seg => {
