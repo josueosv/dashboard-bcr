@@ -353,7 +353,7 @@ function dibujarDonut(id, data) {
   // Colocar los porcentajes en el centro de cada segmento
   function colocarPorcentajes() {
     let etiquetas = svg.innerHTML;
-    const rEtiqueta = r + 18;   // radio FUERA del anillo (r es el borde exterior)
+    const rEtiqueta = r + 20;   // radio FUERA del anillo (r es el borde exterior)
     segmentos.forEach(seg => {
       const angMedio = (seg.inicio + seg.fin) / 2;
       const rad = angMedio * Math.PI / 180;
