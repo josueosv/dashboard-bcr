@@ -334,24 +334,9 @@ function dibujarDonut(id, data) {
     ang = fin;
     return { inicio, fin, color: PALETA[i % 3], pct: s.pct, actual: inicio };
   });
-
+  }
   // Función que redibuja todos los arcos según su ángulo "actual"
 
-function animarConteoActivos() {
-  const el = document.getElementById('activos-cifra');
-  if (!el) return;
-  const objetivo = DATOS.kpis.activos.valor;
-  const contador = { valor: 0 };   // arranca en 0
-
-  anime.animate(contador, {
-    valor: objetivo,
-    duration: 1600,
-    ease: 'out(3)',        // rápido al inicio, desacelera al final (aterriza suave)
-    onUpdate: () => {
-      el.textContent = fmtUSD(contador.valor);
-    }
-  });
-}
   function redibujar() {
     let html = '';
     segmentos.forEach(seg => {
@@ -361,7 +346,21 @@ function animarConteoActivos() {
     });
     svg.innerHTML = html;
   }
+  function animarConteoActivos() {
+    const el = document.getElementById('activos-cifra');
+    if (!el) return;
+    const objetivo = DATOS.kpis.activos.valor;
+    const contador = { valor: 0 };
 
+    anime.animate(contador, {
+      valor: objetivo,
+      duration: 1600,
+      ease: 'outCubic',
+      onUpdate: () => {
+        el.textContent = fmtUSD(contador.valor);
+      }
+    });
+  }
   // Animar cada segmento en secuencia: su ángulo "actual" crece de inicio a fin
   segmentos.forEach((seg, i) => {
     anime.animate(seg, {
