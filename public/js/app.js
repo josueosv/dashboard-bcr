@@ -195,14 +195,22 @@ function capFamilias() {
   const sec = crearSeccion('cap-familias', 'Préstamos a Familias', 'Saldo y Var.%');
   const f = DATOS.prestamosFamilias;
   sec.querySelector('.cap-cuerpo').innerHTML = `
-    <div style="display:flex;gap:60px;align-items:center;justify-content:center;width:100%">
-      <div class="familia-item">
-        <div class="familia-ic">🛒</div>
-        <div><div class="familia-tit">Consumo</div><div class="familia-val">${fmtUSD(f.consumo.valor)}</div><div class="familia-var">▲ ${f.consumo.var}%</div></div>
+    <div style="display:flex;gap:100px;align-items:center;justify-content:center;width:100%">
+      <div class="familia-item" style="gap:32px">
+        <div class="familia-ic" style="width:105px;height:105px;border-radius:24px;font-size:49px">🛒</div>
+        <div>
+          <div class="familia-tit" style="font-size:26px">Consumo</div>
+          <div class="familia-val" style="font-size:53px">${fmtUSD(f.consumo.valor)}</div>
+          <div class="familia-var" style="font-size:25px">▲ ${f.consumo.var}%</div>
+        </div>
       </div>
-      <div class="familia-item">
-        <div class="familia-ic">🏠</div>
-        <div><div class="familia-tit">Vivienda</div><div class="familia-val">${fmtUSD(f.vivienda.valor)}</div><div class="familia-var">▲ ${f.vivienda.var}%</div></div>
+      <div class="familia-item" style="gap:32px">
+        <div class="familia-ic" style="width:105px;height:105px;border-radius:24px;font-size:49px">🏠</div>
+        <div>
+          <div class="familia-tit" style="font-size:26px">Vivienda</div>
+          <div class="familia-val" style="font-size:53px">${fmtUSD(f.vivienda.valor)}</div>
+          <div class="familia-var" style="font-size:25px">▲ ${f.vivienda.var}%</div>
+        </div>
       </div>
     </div>`;
   return sec;
