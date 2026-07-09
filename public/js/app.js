@@ -194,10 +194,18 @@ function capSectores() {
 function capFamilias() {
   const sec = crearSeccion('cap-familias', 'Préstamos a Familias', 'Saldo y Var.%');
   const f = DATOS.prestamosFamilias;
+  const iconoConBorde = (emoji, id) => `
+    <div class="familia-ic-wrap" style="position:relative;width:105px;height:105px;flex-shrink:0">
+      <div class="familia-ic" style="width:105px;height:105px;border-radius:24px;font-size:49px;border:none">${emoji}</div>
+      <svg class="ic-borde" width="105" height="105" viewBox="0 0 105 105" style="position:absolute;top:0;left:0;pointer-events:none">
+        <rect id="${id}" x="2" y="2" width="101" height="101" rx="24" ry="24"
+          fill="none" stroke="#4da3ff" stroke-width="3"/>
+      </svg>
+    </div>`;
   sec.querySelector('.cap-cuerpo').innerHTML = `
     <div style="display:flex;gap:100px;align-items:center;justify-content:center;width:100%">
       <div class="familia-item" style="gap:32px">
-        <div class="familia-ic" style="width:105px;height:105px;border-radius:24px;font-size:49px">🛒</div>
+        ${iconoConBorde('🛒', 'borde-consumo')}
         <div>
           <div class="familia-tit" style="font-size:26px">Consumo</div>
           <div class="familia-val" style="font-size:53px">${fmtUSD(f.consumo.valor)}</div>
@@ -205,7 +213,7 @@ function capFamilias() {
         </div>
       </div>
       <div class="familia-item" style="gap:32px">
-        <div class="familia-ic" style="width:105px;height:105px;border-radius:24px;font-size:49px">🏠</div>
+        ${iconoConBorde('🏠', 'borde-vivienda')}
         <div>
           <div class="familia-tit" style="font-size:26px">Vivienda</div>
           <div class="familia-val" style="font-size:53px">${fmtUSD(f.vivienda.valor)}</div>
@@ -328,6 +336,9 @@ function mostrarCapitulo(i, inmediato) {
   }
   if (capActivo.id === 'cap-sectores') {
     animarBarrasSector();
+  }
+  if (capActivo.id === 'cap-familias') {
+    animarBordesFamilias();
   }
 }
 function siguienteCapitulo() {
@@ -504,6 +515,30 @@ function animarBarrasSector() {
       onUpdate: () => {
         barra.style.width = estado.ancho + '%';
       }
+    });
+  });
+}
+
+// ============================================================
+//  ANIMACIÓN DE CONTORNOS ANIMADOS
+// ============================================================
+
+function animarBordesFamilias() {
+  ['borde-consumo', 'borde-vivienda'].forEach((id, i) => {
+    const rect = document.getElementById(id);
+    if (!rect) return;
+    const largo = rect.getTotalLength();   // perímetro del rectángulo redondeado
+
+    // Preparar el trazo oculto
+    rect.setAttribute('stroke-dasharray', largo);
+    rect.setAttribute('stroke-dashoffset', largo);
+
+    // Animar el trazo dibujándose alrededor del borde
+    anime.animate(rect, {
+      strokeDashoffset: [largo, 0],
+      duration: 1200,
+      delay: i * 200,
+      ease: 'inOutSine'
     });
   });
 }
