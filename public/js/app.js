@@ -168,7 +168,7 @@ function capUtilidad() {
   const k = DATOS.kpis.utilidad;
   sec.querySelector('.cap-impacto-inner').innerHTML = `
     <div class="impacto-mensaje">Utilidad del sistema financiero</div>
-    <div class="impacto-cifra">${fmtUSD(k.valor)}</div>
+    <div class="impacto-cifra" id="utilidad-cifra">${fmtUSD(k.valor)}</div>
     <div class="impacto-unidad">millones</div>
     <div class="impacto-detalle">▲ ${k.var}% <span class="cmp">vs. ${DATOS.comparaCon || ''}</span></div>`;
   return sec;
@@ -305,7 +305,10 @@ function mostrarCapitulo(i, inmediato) {
     dibujarDonut('svg-donut', DATOS.depositosPorTipo);
   }
   if (capActivo.id === 'cap-activos') {
-    animarConteoActivos();
+    animarCifraImpacto('activos-cifra', DATOS.kpis.activos.valor);
+  }
+  if (capActivo.id === 'cap-utilidad') {
+    animarCifraImpacto('utilidad-cifra', DATOS.kpis.utilidad.valor);
   }
 }
 function siguienteCapitulo() {
@@ -409,21 +412,17 @@ function rebanadaPie(cx, cy, r, a0, a1, color) {
 // ============================================================
 //  ANIMACIÓN DE CONTEO (Activos)
 // ============================================================
-function animarConteoActivos() {
-  const el = document.getElementById('activos-cifra');
+function animarCifraImpacto(idElemento, valor) {
+  const el = document.getElementById(idElemento);
   if (!el) return;
 
-  // Asegurar que la cifra final ya está escrita (texto fijo para dividir)
-  el.textContent = fmtUSD(DATOS.kpis.activos.valor);
+  // Texto fijo para dividir
+  el.textContent = fmtUSD(valor);
 
-  // Dividir el texto en caracteres individuales
   const { chars } = anime.splitText(el, { chars: true });
 
-  // Animar cada carácter apareciendo desde el centro
   anime.animate(chars, {
-    // arrancan encogidos y suben a tamaño normal
     scale: [0, 1],
-    // pequeño desplazamiento vertical para dar vida
     y: ['0.4em', '0em'],
     duration: 700,
     ease: 'out(3)',
