@@ -412,16 +412,22 @@ function rebanadaPie(cx, cy, r, a0, a1, color) {
 function animarConteoActivos() {
   const el = document.getElementById('activos-cifra');
   if (!el) return;
-  const objetivo = DATOS.kpis.activos.valor;
-  const contador = { valor: 0 };
 
-  anime.animate(contador, {
-    valor: objetivo,
-    duration: 1600,
-    ease: 'outCubic',
-    onUpdate: () => {
-      el.textContent = fmtUSD(contador.valor);
-    }
+  // Asegurar que la cifra final ya está escrita (texto fijo para dividir)
+  el.textContent = fmtUSD(DATOS.kpis.activos.valor);
+
+  // Dividir el texto en caracteres individuales
+  const { chars } = anime.splitText(el, { chars: true });
+
+  // Animar cada carácter apareciendo desde el centro
+  anime.animate(chars, {
+    // arrancan encogidos y suben a tamaño normal
+    scale: [0, 1],
+    // pequeño desplazamiento vertical para dar vida
+    y: ['0.4em', '0em'],
+    duration: 700,
+    ease: 'out(3)',
+    delay: anime.stagger(45, { from: 'center' })
   });
 }
 
