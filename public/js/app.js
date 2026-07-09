@@ -277,14 +277,14 @@ function dibujarGraficos() {
        <span><i class="dot" style="background:#1a5fc4"></i>Empresas</span>`;
     const f = DATOS.prestamosFamilias;
     document.getElementById('familias-mini-lista').innerHTML = `
-      <div style="font-size:18px;margin:14px 0">
-        <div style="color:var(--texto2)">Consumo</div>
-        <div style="font-size:28px;font-weight:800">${fmtUSD(f.consumo.valor)} <span style="font-size:14px;color:var(--verde)">▲ ${f.consumo.var}%</span></div>
-      </div>
-      <div style="font-size:18px;margin:14px 0">
-        <div style="color:var(--texto2)">Vivienda</div>
-        <div style="font-size:28px;font-weight:800">${fmtUSD(f.vivienda.valor)} <span style="font-size:14px;color:var(--verde)">▲ ${f.vivienda.var}%</span></div>
-      </div>`;
+        <div style="font-size:32px;margin:24px 0">
+          <div style="color:var(--texto2)">Consumo</div>
+          <div style="font-size:49px;font-weight:800">${fmtUSD(f.consumo.valor)} <span style="font-size:25px;color:var(--verde)">▲ ${f.consumo.var}%</span></div>
+        </div>
+        <div style="font-size:32px;margin:24px 0">
+          <div style="color:var(--texto2)">Vivienda</div>
+          <div style="font-size:49px;font-weight:800">${fmtUSD(f.vivienda.valor)} <span style="font-size:25px;color:var(--verde)">▲ ${f.vivienda.var}%</span></div>
+        </div>`;
   }
 }
 
@@ -309,6 +309,9 @@ function mostrarCapitulo(i, inmediato) {
   }
   if (capActivo.id === 'cap-utilidad') {
     animarCifraImpacto('utilidad-cifra', DATOS.kpis.utilidad.valor);
+  }
+  if (capActivo.id === 'cap-composicion' && document.getElementById('svg-pie')) {
+    dibujarPie('svg-pie', DATOS.composicionPrestamos);
   }
 }
 function siguienteCapitulo() {
@@ -393,14 +396,52 @@ function dibujarPie(id, comp) {
   const svg = document.getElementById(id);
   const cx = 120, cy = 120, r = 100;
   const fam = comp.familias, emp = comp.empresas;
-  const a0 = -90, a1 = a0 + (fam / 100) * 360, a2 = a1 + (emp / 100) * 360;
-  let html = '';
-  html += rebanadaPie(cx, cy, r, a0, a1, '#4da3ff');
-  html += rebanadaPie(cx, cy, r, a1, a2, '#1a5fc4');
-  const mF = (a0 + a1) / 2 * Math.PI / 180, mE = (a1 + a2) / 2 * Math.PI / 180;
-  html += `<text x="${(cx + r * 0.5 * Math.cos(mF)).toFixed(1)}" y="${(cy + r * 0.5 * Math.sin(mF)).toFixed(1)}" fill="#fff" font-size="22" font-weight="800" text-anchor="middle" dominant-baseline="middle">${fam}%</text>`;
-  html += `<text x="${(cx + r * 0.5 * Math.cos(mE)).toFixed(1)}" y="${(cy + r * 0.5 * Math.sin(mE)).toFixed(1)}" fill="#fff" font-size="22" font-weight="800" text-anchor="middle" dominant-baseline="middle">${emp}%</text>`;
-  svg.innerHTML = html;
+
+  // Pre-calcular ángulos de las dos rebanadas
+  let ang = -90;
+  const rebanadas = [
+    { inicio: ang, fin: ang + (fam / 100) * 360, color: '#4da3ff', pct: fam, actual: ang },
+  ];
+  ang = rebanadas[0].fin;
+  rebanadas.push({ inicio: ang, fin: ang + (emp / 100) * 360, color: '#1a5fc4', pct: emp, actual: ang });
+
+  // Redibuja las rebanadas según su ángulo "actual"
+  function redibujar() {
+    let html = '';
+    rebanadas.forEach(reb => {
+      if (reb.actual > reb.inicio) {
+        html += rebanadaPie(cx, cy, r, reb.inicio, reb.actual, reb.color);
+      }
+    });
+    svg.innerHTML = html;
+  }
+
+  // Animar cada rebanada en secuencia
+  rebanadas.forEach((reb, i) => {
+    anime.animate(reb, {
+      actual: reb.fin,
+      duration: 600,
+      delay: i * 600,
+      ease: 'linear',
+      onUpdate: redibujar,
+      onComplete: () => {
+        if (i === rebanadas.length - 1) colocarPorcentajesPie();
+      }
+    });
+  });
+
+  // Colocar los porcentajes dentro de cada rebanada, al terminar
+  function colocarPorcentajesPie() {
+    let etiquetas = svg.innerHTML;
+    rebanadas.forEach(reb => {
+      const angMedio = (reb.inicio + reb.fin) / 2;
+      const rad = angMedio * Math.PI / 180;
+      const lx = cx + r * 0.5 * Math.cos(rad);
+      const ly = cy + r * 0.5 * Math.sin(rad);
+      etiquetas += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="#fff" font-size="22" font-weight="800" text-anchor="middle" dominant-baseline="middle">${reb.pct}%</text>`;
+    });
+    svg.innerHTML = etiquetas;
+  }
 }
 function rebanadaPie(cx, cy, r, a0, a1, color) {
   const p = (ang) => [cx + r * Math.cos(ang * Math.PI / 180), cy + r * Math.sin(ang * Math.PI / 180)];
