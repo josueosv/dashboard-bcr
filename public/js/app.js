@@ -177,13 +177,18 @@ function capSectores() {
   const sec = crearSeccion('cap-sectores', 'Préstamos Empresas por Sector', 'Var. USD Millones');
   const sectores = DATOS.prestamosEmpresasSector;
   const max = Math.max(...sectores.map(s => s.valor));
-  sec.querySelector('.cap-cuerpo').innerHTML = `<div style="width:100%;max-width:1100px">` +
-    sectores.map((s, i) => `
-      <div class="sector-item">
-        <div class="sector-nombre">${s.sector}</div>
-        <div class="sector-track"><div class="sector-fill" style="width:${(s.valor / max * 100).toFixed(1)}%"></div></div>
-        <div class="sector-valor">${fmtUSD(s.valor)}</div>
-      </div>`).join('') + `</div>`;
+  sec.querySelector('.cap-cuerpo').innerHTML = `<div style="width:100%;max-width:1400px">` +
+    sectores.map((s, i) => {
+      const anchoFinal = (s.valor / max * 100).toFixed(1);
+      return `
+      <div class="sector-item" style="font-size:21px">
+        <div class="sector-nombre" style="width:225px;font-size:21px">${s.sector}</div>
+        <div class="sector-track" style="height:24px">
+          <div class="sector-fill" id="sector-fill-${i}" data-ancho="${anchoFinal}" style="width:0%"></div>
+        </div>
+        <div class="sector-valor" style="width:135px;font-size:21px">${fmtUSD(s.valor)}</div>
+      </div>`;
+    }).join('') + `</div>`;
   return sec;
 }
 function capFamilias() {
@@ -312,6 +317,9 @@ function mostrarCapitulo(i, inmediato) {
   }
   if (capActivo.id === 'cap-composicion' && document.getElementById('svg-pie')) {
     dibujarPie('svg-pie', DATOS.composicionPrestamos);
+  }
+  if (capActivo.id === 'cap-sectores') {
+    animarBarrasSector();
   }
 }
 function siguienteCapitulo() {
@@ -470,6 +478,26 @@ function animarCifraImpacto(idElemento, valor) {
     delay: anime.stagger(45, { from: 'center' })
   });
 }
+// ============================================================
+//  ANIMACIÓN DE BARRAS CORRIENDO EN LATERAL
+// ============================================================
 
+function animarBarrasSector() {
+  const sectores = DATOS.prestamosEmpresasSector;
+  sectores.forEach((s, i) => {
+    const barra = document.getElementById('sector-fill-' + i);
+    if (!barra) return;
+    const anchoFinal = parseFloat(barra.getAttribute('data-ancho'));
+    const estado = { ancho: 0 };
+    anime.animate(estado, {
+      ancho: anchoFinal,
+      duration: 1100,
+      ease: 'out(3)',
+      onUpdate: () => {
+        barra.style.width = estado.ancho + '%';
+      }
+    });
+  });
+}
 // ============================================================
 iniciar();
